@@ -15,7 +15,7 @@
             <i class="fa-solid fa-grip-vertical"></i>
             <span>Mesas</span>
         </a>
-        <a href="<?php echo BASE_URL; ?>/orders" 
+        <a href="<?php echo BASE_URL; ?>/orders/kitchen" 
         class="nav-link <?php echo ($currentView ?? '') === 'orders' ? 'active' : ''; ?>">
             <i class="fas fa-receipt"></i>
             <span>Comandas</span>
