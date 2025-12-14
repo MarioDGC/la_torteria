@@ -47,6 +47,14 @@ const dashboardData = {
 // Inicialización
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // ✅ Guard clause - solo ejecutar si estamos en dashboard
+    if (!document.getElementById('ventasHoy')) {
+        console.log('Dashboard module: Not in dashboard view');
+        return;
+    }
+
+    console.log('Dashboard module initializing...');
+    
     initDashboard();
     setupEventListeners();
     loadDashboardData();
@@ -56,7 +64,18 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Inicializa el dashboard con configuraciones básicas
  */
+/**
+ * Inicializa el dashboard con configuraciones básicas
+ */
 function initDashboard() {
+    console.log('Dashboard module loaded');
+
+    // ✅ Solo ejecutar si estamos en la vista de dashboard
+    if (!document.getElementById('ventasHoy')) {
+        console.log('Not in dashboard view, skipping initialization');
+        return;
+    }
+
     console.log('Dashboard inicializado');
 
     // Verificar si hay sesión activa (simulado)
@@ -108,7 +127,11 @@ function setupEventListeners() {
     notificationBtn.addEventListener('click', showNotifications);
 
     // Logout
-    logoutBtn.addEventListener('click', handleLogout);
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#logoutBtn')) {
+            handleLogout(e);
+        }
+    });
 
     // Navegación del sidebar
     setupNavigation();
@@ -141,7 +164,7 @@ function handleOutsideClick(event) {
  */
 function showNotifications() {
     // Aquí irá la lógica para mostrar notificaciones
-    alert('Sistema de notificaciones - Próximamente');
+    Toast.info('Sistema de notificaciones en desarrollo', 5000, 'Próximamente');
 }
 
 /**
@@ -150,36 +173,44 @@ function showNotifications() {
 function handleLogout(e) {
     e.preventDefault();
 
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-        // Aquí irá la petición al backend
-        console.log('Cerrando sesión...');
-        // window.location.href = 'logout.php';
-    }
+    Toast.confirm(
+        '¿Estás seguro de que deseas cerrar sesión?',
+        () => {
+            // Confirmar logout
+            Toast.info('Cerrando sesión...', 2000);
+            setTimeout(() => {
+                const baseUrl = document.querySelector('meta[name="base-url"]')?.content || '';
+                window.location.href = `${baseUrl}/auth/logout`;
+            }, 2000);
+        }
+    );
 }
 
 /**
  * Configura la navegación del sidebar
  */
 function setupNavigation() {
-    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
+    // Delegación de eventos para navegación
+    document.addEventListener('click', function(e) {
+        const navLink = e.target.closest('.sidebar-nav .nav-link');
+        
+        if (navLink && navLink.getAttribute('href') === '#') {
             e.preventDefault();
-
+            
             // Remover active de todos
-            navLinks.forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => {
+                l.classList.remove('active');
+            });
 
             // Agregar active al clickeado
-            link.classList.add('active');
+            navLink.classList.add('active');
 
-            // Cerrar sidebar en mobile
             if (window.innerWidth <= 767) {
                 sidebar.classList.remove('active');
             }
 
-            console.log('Navegando a:', link.querySelector('span').textContent);
-        });
+            console.log('Navegando a:', navLink.querySelector('span').textContent);
+        }
     });
 }
 
@@ -190,6 +221,11 @@ function setupNavigation() {
  * Carga todos los datos del dashboard
  */
 function loadDashboardData() {
+    // ✅ Solo ejecutar si estamos en dashboard
+    if (!document.getElementById('ventasHoy')) {
+        return;
+    }
+
     updateStatsCards();
     loadTopDishes();
     loadRecentOrders();
@@ -320,7 +356,7 @@ function getStatusText(status) {
  */
 function viewOrderDetails(orderId) {
     console.log('Ver detalles de orden:', orderId);
-    alert(`Detalles de orden ${orderId} - Próximamente`);
+    Toast.info(`Cargando detalles de la orden ${orderId}...`, 3000);
 }
 
 // ========================================

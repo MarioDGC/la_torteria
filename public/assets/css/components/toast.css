@@ -1,0 +1,49 @@
+/**
+ * Toast Notifications - Estilos personalizados
+ */
+
+.toast {
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-header {
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+}
+
+.toast-body {
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .toast {
+        min-width: 280px;
+        max-width: calc(100vw - 2rem);
+    }
+}
+
+/* Estados hover en botones del toast */
+.toast-body .btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}

@@ -1,0 +1,74 @@
+/**
+ * Variables CSS Globales
+ * Sistema de diseño centralizado
+ */
+
+ :root {
+    /* ===== Colores principales ===== */
+    --primary-color: #e67e22;
+    --primary-dark: #d35400;
+    --primary-light: #f39c12;
+    
+    --secondary-color: #343a40;
+    --secondary-light: #495057;
+    
+    /* ===== Colores de estado ===== */
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --info-color: #3498db;
+    --danger-color: #e74c3c;
+    
+    /* ===== Colores neutros ===== */
+    --bg-light: #f8f9fa;
+    --bg-white: #ffffff;
+    --bg-dark: #2c3e50;
+    
+    --text-dark: #2c3e50;
+    --text-muted: #7f8c8d;
+    --text-light: #ecf0f1;
+    
+    --border-color: #dee2e6;
+    
+    /* ===== Sombras ===== */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+    
+    /* ===== Espaciados ===== */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 3rem;
+    
+    /* ===== Transiciones ===== */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    
+    /* ===== Tipografía ===== */
+    --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family-heading: 'Poppins', sans-serif;
+    
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    
+    /* ===== Bordes ===== */
+    --border-radius-sm: 4px;
+    --border-radius-base: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+    --border-radius-full: 9999px;
+    
+    /* ===== Layout ===== */
+    --sidebar-width: 260px;
+    --sidebar-collapsed: 70px;
+    --navbar-height: 60px;
+}

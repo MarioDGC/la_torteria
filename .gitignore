@@ -6,7 +6,7 @@
 
 # === Configuración sensible (CRÍTICO) ===
 config.php
-database.php
+config/database.php
 db_config.php
 .env
 .env.local
@@ -29,8 +29,7 @@ desktop.ini
 .idea/
 *.swp
 *.swo
-*.sublime-workspace
-*.sublime-project
+*.sublime-*
 
 # === PHP ===
 /vendor/
@@ -46,8 +45,8 @@ package-lock.json
 yarn.lock
 
 # === Archivos subidos por usuarios ===
-/uploads/*
-!/uploads/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
 /public/uploads/*
 !/public/uploads/.gitkeep
 /assets/uploads/*
@@ -59,10 +58,13 @@ yarn.lock
 /tmp/*
 !/tmp/.gitkeep
 *.cache
+*.tmp
+*.bak
+*~
 
 # === Logs ===
-/logs/*
-!/logs/.gitkeep
+storage/logs/*.log
+!storage/logs/.gitkeep
 *.log
 error_log
 php_errors.log

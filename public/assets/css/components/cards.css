@@ -1,0 +1,25 @@
+.card {
+    background: var(--bg-white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-md);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Modificadores específicos */
+.card--table {
+    border-left: 4px solid var(--primary-color);
+}
+
+.card--order {
+    border-left: 4px solid var(--success-color);
+}
+
+.card--alert {
+    border-left: 4px solid var(--danger-color);
+}
