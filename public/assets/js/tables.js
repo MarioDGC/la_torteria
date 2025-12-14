@@ -8,7 +8,7 @@
  */
 
 (function () {
-  "use strict";
+  ("use strict");
 
   // ========================================
   // Variables Globales
@@ -298,7 +298,7 @@
    * @param {number} accountId - ID de la cuenta
    */
   function viewAccount(accountId) {
-    window.location.href = `${APP_CONFIG.baseUrl}/orders/view/${accountId}`;
+    window.location.href = `${APP_CONFIG.baseUrl}/tables/viewAccount/${accountId}`;
   }
 
   /**

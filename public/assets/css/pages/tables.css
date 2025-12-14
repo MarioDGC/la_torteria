@@ -420,6 +420,174 @@
 }
 
 /* ========================================
+   Account Detail View
+   ======================================== */
+.account-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.summary-item.total {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.summary-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Orders Status Layout */
+.orders-status-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.status-column .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-column .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-column .card-body {
+  flex: 1;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.empty-column {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  color: var(--text-muted);
+}
+
+.empty-column i {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-sm);
+  opacity: 0.3;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.order-card {
+  background: var(--bg-light);
+  border-radius: var(--border-radius-base);
+  padding: var(--spacing-sm);
+  border-left: 3px solid var(--border-color);
+  transition: var(--transition-base);
+}
+
+.order-card.highlight {
+  animation: pulse 2s infinite;
+  border-left-color: var(--success-color);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(39, 174, 96, 0);
+  }
+}
+
+.order-card.status-pending {
+  border-left-color: var(--warning-color);
+}
+
+.order-card.status-preparing {
+  border-left-color: var(--info-color);
+}
+
+.order-card.status-ready {
+  border-left-color: var(--success-color);
+  background: rgba(39, 174, 96, 0.05);
+}
+
+.order-card.status-served {
+  opacity: 0.7;
+  border-left-color: var(--text-muted);
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.order-card-header strong {
+  font-size: 0.95rem;
+}
+
+.order-quantity {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.order-detail {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.order-detail.special {
+  color: var(--warning-color);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.order-detail i {
+  width: 16px;
+}
+
+.order-status-badge {
+  margin-top: 0.5rem;
+}
+
+.order-price {
+  margin-top: 0.5rem;
+  text-align: right;
+  font-weight: 600;
+  color: var(--success-color);
+}
+
+.btn-mark-served {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .orders-status-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
    Modal - Status Badge Styles
    ======================================== */
 /* #modalCurrentStatus {

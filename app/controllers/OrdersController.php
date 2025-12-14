@@ -261,6 +261,49 @@ class OrdersController {
     }
 
     /**
+     * API: Marca una orden como servida
+     * POST: order_id
+     */
+    public function markServed() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+
+        try {
+            $orderId = filter_input(INPUT_POST, 'order_id', FILTER_VALIDATE_INT);
+
+            if (!$orderId) {
+                throw new Exception('Orden no válida');
+            }
+
+            $orderModel = new Order();
+            $result = $orderModel->updateStatus($orderId, 'served');
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Orden marcada como servida'
+                ]);
+            } else {
+                throw new Exception('Error al actualizar orden');
+            }
+
+        } catch (Exception $e) {
+            error_log("Error en markServed: " . $e->getMessage());
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Método helper para renderizar vistas con layout
      */
     private function render($layout, $data = []) {

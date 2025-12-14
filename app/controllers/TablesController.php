@@ -208,6 +208,49 @@ class TablesController {
     }
 
     /**
+     * Vista detallada de una cuenta
+     * Muestra todas las órdenes y permite gestionarlas
+     */
+    public function viewAccount($accountId) {
+        AuthMiddleware::handle();
+
+        $accountId = filter_var($accountId, FILTER_VALIDATE_INT);
+        
+        if (!$accountId) {
+            $_SESSION['error'] = 'Cuenta no válida';
+            header('Location: ' . BASE_URL . '/tables');
+            exit;
+        }
+
+        // Obtener datos de la cuenta
+        $accountModel = new Account();
+        $orderModel = new Order();
+
+        $account = $accountModel->getAccountById($accountId);
+        
+        if (!$account || $account['status'] !== 'open') {
+            $_SESSION['error'] = 'Cuenta no disponible';
+            header('Location: ' . BASE_URL . '/tables');
+            exit;
+        }
+
+        // Obtener todas las órdenes
+        $orders = $orderModel->getOrdersByAccount($accountId);
+
+        ob_start();
+        include APP_PATH . '/views/tables/account-detail.php';
+        $content = ob_get_clean();
+
+        $this->render('layouts/dashboard', [
+            'content' => $content,
+            'pageTitle' => 'Cuenta - Mesa ' . $account['table_number'],
+            'currentView' => 'tables',
+            'customCSS' => ['pages/tables'],
+            'customJS' => ['account-detail']
+        ]);
+    }
+
+    /**
      * Render helper for views with layout
      * 
      * @param string $layout Layout path (relative to /app/views/)
