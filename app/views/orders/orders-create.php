@@ -61,7 +61,7 @@ if (!$account) {
 
 <!-- Layout: Menú y Carrito -->
 <div class="orders-layout">
-    <div class="row g-3">
+    <div class="row g-3" data-account-id="<?php echo $account['id']; ?>" data-user-id="<?php echo $_SESSION['user_id']; ?>">
         <!-- Panel Izquierdo: Menú de Platillos (8 columnas en desktop) -->
         <div class="col-12 col-lg-8">
             <div class="menu-panel">
@@ -236,7 +236,7 @@ if (!$account) {
                 <h5 class="modal-title">
                     <i class="fas fa-cog"></i> Configurar Platillo
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">X</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="configDishId">
@@ -300,7 +300,7 @@ if (!$account) {
                     <i class="fas fa-info-circle me-2"></i>
                     <span id="detailDishName">Detalles del Platillo</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">X</button>
             </div>
             <div class="modal-body">
                 <div class="dish-details-content">
@@ -329,15 +329,3 @@ if (!$account) {
         </div>
     </div>
 </div>
-
-
-<!-- Orders Waiter JS -->
-<script>
-    // Configuración global
-    const APP_CONFIG = {
-        baseUrl: '<?php echo BASE_URL; ?>',
-        accountId: <?php echo $account['id']; ?>,
-        userId: <?php echo $_SESSION['user_id']; ?>
-    };
-</script>
-<script src="<?php echo ASSETS_URL; ?>/js/orders-waiter.js"></script>

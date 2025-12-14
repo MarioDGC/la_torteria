@@ -13,6 +13,12 @@
   // Estado Global
   // ========================================
   const state = {
+    config: {
+      // 👈 AGREGAR esta propiedad
+      baseUrl: "",
+      accountId: null,
+      userId: null,
+    },
     currentTable: null,
     currentAccount: null,
     dishes: {}, // { categoryId: [dishes] }
@@ -50,7 +56,6 @@
     initModals();
     initEventListeners();
     loadInitialData();
-    console.log("✅ Orders Waiter Module initialized");
   });
 
   /**
@@ -62,14 +67,12 @@
 
     if (configModalElement) {
       elements.configModal = new bootstrap.Modal(configModalElement);
-      console.log("✅ Modal de configuración inicializado");
     } else {
       console.warn("⚠️ Modal de configuración no encontrado");
     }
 
     if (detailsModalElement) {
       elements.detailsModal = new bootstrap.Modal(detailsModalElement);
-      console.log("✅ Modal de detalles inicializado");
     } else {
       console.warn("⚠️ Modal de detalles no encontrado");
     }
@@ -79,8 +82,6 @@
    * Configura todos los event listeners
    */
   function initEventListeners() {
-    console.log("🎧 Inicializando event listeners...");
-
     // Category tabs
     elements.categoryTabs.forEach((tab) => {
       // Remover listener anterior si existe (prevenir duplicados)
@@ -135,8 +136,6 @@
     // Remover el anterior si existe
     document.removeEventListener("click", handleDynamicClicks);
     document.addEventListener("click", handleDynamicClicks);
-
-    console.log("✅ Event listeners inicializados");
   }
 
   // Funciones separadas para los botones (mejor para remover listeners)
@@ -193,29 +192,34 @@
    * Carga todos los datos necesarios al iniciar
    */
   async function loadInitialData() {
-    console.log("🔄 Iniciando carga de datos...");
-
     try {
-      // Obtener datos de la mesa desde el HTML (pasados por PHP)
-      const tableData = document.getElementById("tableData");
-      if (tableData) {
-        state.currentTable = {
-          id: tableData.dataset.tableId,
-          number: tableData.dataset.tableNumber,
-        };
-        state.currentAccount = {
-          id: tableData.dataset.accountId,
-        };
-        console.log("✅ Datos de mesa cargados:", state.currentTable);
-      } else {
-        console.error("❌ No se encontró elemento #tableData");
+      // ✅ Obtener configuración del DOM
+      const baseUrl =
+        document.querySelector('meta[name="base-url"]')?.content || "";
+      const container = document.querySelector("[data-account-id]");
+
+      if (!container) {
+        console.error("❌ No se encontró contenedor con data-account-id");
+        Toast.error("Error: No se encontró información de la cuenta");
+        return;
       }
+
+      const accountId = parseInt(container.dataset.accountId);
+      const userId = parseInt(container.dataset.userId);
+
+      // ✅ Guardar en el estado global
+      state.config = {
+        baseUrl,
+        accountId,
+        userId,
+      };
+
+      state.currentAccount = {
+        id: accountId,
+      };
 
       // Cargar platillos y guisados
       await Promise.all([loadDishes(), loadSideDishes()]);
-
-      console.log("✅ Platillos cargados:", state.dishes);
-      console.log("✅ Guisados cargados:", state.sideDishes);
 
       // Activar primera categoría
       if (elements.categoryTabs.length > 0) {
@@ -234,9 +238,7 @@
    */
   async function loadDishes() {
     try {
-      console.log("📡 Cargando platillos...");
-
-      const response = await fetch(`${APP_CONFIG.baseUrl}/orders/getDishes`);
+      const response = await fetch(`${state.config.baseUrl}/orders/getDishes`);
 
       if (!response.ok) {
         const text = await response.text();
@@ -245,7 +247,6 @@
       }
 
       const data = await response.json();
-      console.log("📦 Datos recibidos:", data);
 
       if (data.success) {
         // Agrupar por categoría
@@ -256,8 +257,6 @@
           acc[dish.category_id].push(dish);
           return acc;
         }, {});
-
-        console.log("✅ Platillos procesados:", state.dishes);
       } else {
         throw new Error(data.message || "Error desconocido");
       }
@@ -274,7 +273,7 @@
   async function loadSideDishes() {
     try {
       const response = await fetch(
-        `${APP_CONFIG.baseUrl}/orders/getSideDishes`
+        `${state.config.baseUrl}/orders/getSideDishes`
       );
 
       if (!response.ok) {
@@ -351,13 +350,6 @@
       dish.is_available === true;
     const price = parseFloat(dish.price);
 
-    // ✅ Log para verificar datos del platillo
-    console.log("🎨 Creando card para platillo:", {
-      id: dish.id,
-      name: dish.name,
-      isAvailable: isAvailable,
-    });
-
     return `
         <div class="col-12 col-md-6 col-lg-4">
             <div class="dish-card ${!isAvailable ? "unavailable" : ""}" 
@@ -406,11 +398,7 @@
    * @param {HTMLElement} dishCard - Elemento .dish-card
    */
   function openDishDetails(dishCard) {
-    console.log("🎯 openDishDetails - dishCard:", dishCard);
-
     const dishId = dishCard.dataset.dishId;
-    console.log("🆔 dishId extraído:", dishId, "(type:", typeof dishId, ")");
-    console.log("📋 Todos los datasets:", dishCard.dataset);
 
     const dish = getDishById(dishId);
 
@@ -434,8 +422,6 @@
 
     // Guardar referencia para agregar al carrito desde el modal
     dishDetailsModal._currentDish = dish;
-
-    console.log("✅ Modal de detalles abierto para:", dish.name);
   }
 
   /**
@@ -443,8 +429,6 @@
    * @param {Object} dish - Datos del platillo
    */
   function populateDishDetailsModal(dish) {
-    console.log("📝 Poblando modal con platillo:", dish);
-
     // Nombre del platillo
     const titleElement = document.getElementById("detailDishName");
     if (titleElement) {
@@ -482,15 +466,6 @@
    * @returns {Object|null} Datos del platillo
    */
   function getDishById(dishId) {
-    console.log(
-      "🔍 Buscando platillo con ID:",
-      dishId,
-      "(type:",
-      typeof dishId,
-      ")"
-    );
-    console.log("📦 Estado de dishes:", state.dishes);
-
     // Guard: validar que dishId existe
     if (!dishId) {
       console.error("❌ dishId es null o undefined");
@@ -508,19 +483,15 @@
 
     // Iterar sobre cada categoría
     for (const [categoryId, categoryDishes] of Object.entries(state.dishes)) {
-      console.log(`🔎 Buscando en categoría ${categoryId}:`, categoryDishes);
-
       // Buscar en los platillos de esta categoría
       const dish = categoryDishes.find((d) => String(d.id) === searchId);
 
       if (dish) {
-        console.log("✅ Platillo encontrado:", dish);
         return dish;
       }
     }
 
     console.error("❌ Platillo no encontrado con ID:", dishId);
-    console.log("📋 IDs disponibles:", getAllDishIds());
     return null;
   }
 
@@ -551,14 +522,11 @@
    * @param {HTMLElement|Object} source - Elemento .dish-card o datos del platillo
    */
   function openDishConfig(source) {
-    console.log("🔧 openDishConfig llamado con:", source);
-
     let dish;
 
     // Si es un elemento HTML, extraer datos
     if (source instanceof HTMLElement) {
       const dishId = source.dataset.dishId;
-      console.log("📌 Extrayendo dishId:", dishId);
 
       if (!dishId) {
         console.error("❌ El elemento no tiene data-dish-id");
@@ -571,7 +539,6 @@
     // Si ya es un objeto, usarlo directamente
     else if (typeof source === "object" && source !== null) {
       dish = source;
-      console.log("📦 Usando objeto directamente:", dish);
     } else {
       console.error("❌ Tipo de source no válido:", typeof source);
       Toast.error("Error: Tipo de dato inválido");
@@ -625,8 +592,6 @@
 
     // ✅ Abrir modal
     elements.configModal.show();
-
-    console.log("✅ Modal de configuración abierto para:", dish.name);
   }
 
   /**
@@ -916,7 +881,7 @@
       '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
     try {
-      const response = await fetch(`${APP_CONFIG.baseUrl}/orders/create`, {
+      const response = await fetch(`${state.config.baseUrl}/orders/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -938,7 +903,7 @@
 
         // Opcional: Redirigir o actualizar vista
         setTimeout(() => {
-          window.location.href = `${APP_CONFIG.baseUrl}/orders/view/${state.currentAccount.id}`;
+          window.location.href = `${state.config.baseUrl}/orders/view/${state.currentAccount.id}`;
         }, 1500);
       } else {
         throw new Error(data.message || "Error al enviar orden");
