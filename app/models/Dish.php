@@ -157,4 +157,33 @@ class Dish {
             return false;
         }
     }
+
+    /**
+     * Obtiene todos los platillos con información de categoría
+     * Para API endpoints
+     * 
+     * @return array
+     */
+    public function getAllWithCategory() {
+        try {
+            $query = "SELECT 
+                        d.*,
+                        c.id as category_id,
+                        c.name as category_name
+                    FROM {$this->table} d
+                    INNER JOIN categories c ON d.category_id = c.id
+                    WHERE d.is_active = TRUE
+                    AND c.is_active = TRUE
+                    ORDER BY c.display_order, d.name";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+
+            return $stmt->fetchAll();
+
+        } catch (PDOException $e) {
+            error_log("Error en getAllWithCategory: " . $e->getMessage());
+            return [];
+        }
+    }
 }

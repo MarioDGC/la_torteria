@@ -3,21 +3,36 @@
  * Vista: Crear Orden (Mesero)
  * Permite seleccionar platillos y enviar a cocina
  */
+// Extraer datos pasados por el controlador
+$account = $account ?? null;
+$categories = $categories ?? [];
+$sideDishes = $sideDishes ?? [];
+$currentOrders = $currentOrders ?? [];
+
+if (!$account) {
+    echo '<div class="alert alert-danger">Error: Datos de cuenta no disponibles</div>';
+    return;
+}
 ?>
+
+<!-- ✅ CRÍTICO: Data hidden para JavaScript -->
+<div id="tableData" 
+     data-table-id="<?php echo htmlspecialchars($account['table_id']); ?>"
+     data-table-number="<?php echo htmlspecialchars($account['table_number']); ?>"
+     data-account-id="<?php echo htmlspecialchars($account['id']); ?>"
+     style="display: none;">
+</div>
 
 <!-- Page Header -->
 <div class="page-header">
     <div>
-        <h1><i class="fas fa-utensils"></i> Tomar Orden</h1>
+        <h1>
+            <i class="fas fa-receipt"></i> 
+            Nueva Orden - Mesa <?php echo htmlspecialchars($account['table_number']); ?>
+        </h1>
         <p class="text-muted">
-            Mesa <?php echo htmlspecialchars($account['table_number']); ?> 
-            - <?php echo htmlspecialchars($account['waiter_name']); ?>
+            Mesero: <?php echo htmlspecialchars($account['waiter_name']); ?>
         </p>
-    </div>
-    <div class="header-actions">
-        <a href="<?php echo BASE_URL; ?>/tables" class="btn btn-outline">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
     </div>
 </div>
 
@@ -46,149 +61,170 @@
 
 <!-- Layout: Menú y Carrito -->
 <div class="orders-layout">
-    
-    <!-- Panel Izquierdo: Menú de Platillos -->
-    <div class="menu-panel">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-book-open"></i> Menú</h5>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchDish" placeholder="Buscar platillo...">
+    <div class="row g-3">
+        <!-- Panel Izquierdo: Menú de Platillos (8 columnas en desktop) -->
+        <div class="col-12 col-lg-8">
+            <div class="menu-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-book-open"></i> Menú</h5>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchDish" placeholder="Buscar platillo...">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabs de Categorías -->
+                        <ul class="nav nav-tabs category-tabs" role="tablist">
+                            <?php foreach ($categories as $index => $category): ?>
+                                <li class="nav-item" role="presentation">
+                                    <button 
+                                        class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" 
+                                        id="cat-<?php echo $category['id']; ?>-tab"
+                                        data-bs-toggle="tab" 
+                                        data-bs-target="#cat-<?php echo $category['id']; ?>"
+                                        type="button">
+                                        <?php echo htmlspecialchars($category['name']); ?>
+                                    </button>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+
+                        <!-- Contenido de Categorías -->
+                        <div class="tab-content mt-3">
+                            <?php foreach ($categories as $index => $category): ?>
+                                <div 
+                                    class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" 
+                                    id="cat-<?php echo $category['id']; ?>">
+                                    
+                                    <!-- ✅ Bootstrap Grid: 2 columnas en desktop, 1 en mobile -->
+                                    <div class="dishes-grid">
+                                        <div class="row g-3">
+                                            <?php foreach ($category['dishes'] as $dish): ?>
+                                                <div class="col-12 col-md-6">
+                                                    <div class="dish-card" 
+                                                        data-dish-id="<?php echo $dish['id']; ?>"
+                                                        data-dish-name="<?php echo htmlspecialchars($dish['name']); ?>"
+                                                        data-dish-price="<?php echo $dish['price']; ?>"
+                                                        data-dish-description="<?php echo htmlspecialchars($dish['description'] ?? ''); ?>"
+                                                        data-requires-side="<?php echo $dish['requires_side_dish']; ?>">
+                                                        
+                                                        <!-- ✅ Row 1: Nombre y Precio -->
+                                                        <div class="row g-2 mb-2 align-items-center">
+                                                            <div class="col">
+                                                                <h6 class="dish-name"><?php echo htmlspecialchars($dish['name']); ?></h6>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <div class="dish-price">$<?php echo number_format($dish['price'], 0); ?></div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- ✅ Row 2: Botones -->
+                                                        <div class="row g-2 align-items-center">
+                                                            <div class="col-auto">
+                                                                <button class="btn-dish-details" 
+                                                                        title="Ver detalles del platillo">
+                                                                    <i class="fas fa-info-circle"></i>
+                                                                    <span>Detalles</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="col offset-md-4 offset-3">
+                                                                <button class="btn-add-dish" 
+                                                                        title="Agregar al carrito">
+                                                                    <i class="fas fa-plus"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="card-body">
-                <!-- Tabs de Categorías -->
-                <ul class="nav nav-tabs category-tabs" role="tablist">
-                    <?php foreach ($categories as $index => $category): ?>
-                        <li class="nav-item" role="presentation">
-                            <button 
-                                class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" 
-                                id="cat-<?php echo $category['id']; ?>-tab"
-                                data-bs-toggle="tab" 
-                                data-bs-target="#cat-<?php echo $category['id']; ?>"
-                                type="button">
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </button>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+        </div>
 
-                <!-- Contenido de Categorías -->
-                <div class="tab-content mt-3">
-                    <?php foreach ($categories as $index => $category): ?>
-                        <div 
-                            class="tab-pane fade <?php echo $index === 0 ? 'show active' : ''; ?>" 
-                            id="cat-<?php echo $category['id']; ?>">
-                            
-                            <div class="dishes-grid">
-                                <?php foreach ($category['dishes'] as $dish): ?>
-                                    <div class="dish-card" 
-                                         data-dish-id="<?php echo $dish['id']; ?>"
-                                         data-dish-name="<?php echo htmlspecialchars($dish['name']); ?>"
-                                         data-dish-price="<?php echo $dish['price']; ?>"
-                                         data-requires-side="<?php echo $dish['requires_side_dish'] ? '1' : '0'; ?>">
-                                        
-                                        <?php if ($dish['image_url']): ?>
-                                            <img src="<?php echo htmlspecialchars($dish['image_url']); ?>" 
-                                                 alt="<?php echo htmlspecialchars($dish['name']); ?>">
-                                        <?php else: ?>
-                                            <div class="dish-placeholder">
-                                                <i class="fas fa-utensils"></i>
-                                            </div>
-                                        <?php endif; ?>
+        <!-- Panel Derecho: Carrito de Órdenes (4 columnas en desktop) -->
+        <div class="col-12 col-lg-4">
+            <div class="cart-panel">
+                <div class="card cart-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-shopping-cart"></i> Carrito</h5>
+                        <button class="btn btn-sm btn-outline-danger" id="btnClearCart">
+                            <i class="fas fa-trash"></i> Vaciar
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Empty state -->
+                        <div class="empty-cart" id="emptyCart">
+                            <i class="fas fa-shopping-cart fa-3x"></i>
+                            <p>El carrito está vacío</p>
+                            <small class="text-muted">Agrega platillos del menú</small>
+                        </div>
 
-                                        <div class="dish-info">
-                                            <h6><?php echo htmlspecialchars($dish['name']); ?></h6>
-                                            <?php if ($dish['description']): ?>
-                                                <p><?php echo htmlspecialchars($dish['description']); ?></p>
+                        <!-- Cart items -->
+                        <div class="cart-items" id="cartItems" style="display: none;">
+                            <!-- Los items se agregan dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <!-- Cart summary -->
+                    <div class="card-footer" id="cartSummary" style="display: none;">
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <strong id="cartSubtotal">$0.00</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>IVA (16%):</span>
+                                <strong id="cartTax">$0.00</strong>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <strong id="cartTotal">$0.00</strong>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary w-100 mt-3" id="btnSubmitOrder">
+                            <i class="fas fa-paper-plane"></i> Enviar Orden
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Órdenes Actuales -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6><i class="fas fa-list"></i> Órdenes Actuales</h6>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($currentOrders)): ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-inbox fa-2x mb-2"></i>
+                                <p class="mb-0">No hay órdenes previas</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="previous-orders">
+                                <?php foreach ($currentOrders as $order): ?>
+                                    <div class="order-item status-<?php echo $order['status']; ?>">
+                                        <div class="order-info">
+                                            <strong><?php echo htmlspecialchars($order['dish_name']); ?></strong>
+                                            <?php if ($order['side_dish_name']): ?>
+                                                <small>con <?php echo htmlspecialchars($order['side_dish_name']); ?></small>
                                             <?php endif; ?>
-                                            <div class="dish-footer">
-                                                <span class="dish-price">$<?php echo number_format($dish['price'], 2); ?></span>
-                                                <button class="btn-add-dish" data-dish-id="<?php echo $dish['id']; ?>">
-                                                    <i class="fas fa-plus"></i> Agregar
-                                                </button>
-                                            </div>
                                         </div>
+                                        <span class="order-quantity">x<?php echo $order['quantity']; ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Panel Derecho: Carrito de Órdenes -->
-    <div class="cart-panel">
-        <div class="card cart-card">
-            <div class="card-header">
-                <h5><i class="fas fa-shopping-cart"></i> Orden Actual</h5>
-                <button class="btn-clear-cart" id="clearCart" style="display: none;">
-                    <i class="fas fa-trash"></i> Limpiar
-                </button>
-            </div>
-            <div class="card-body">
-                <div id="cartItems" class="cart-items">
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>Agrega platillos para comenzar</p>
-                    </div>
-                </div>
-
-                <div class="cart-summary" id="cartSummary" style="display: none;">
-                    <div class="summary-row">
-                        <span>Subtotal:</span>
-                        <strong id="cartSubtotal">$0.00</strong>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Total:</span>
-                        <strong id="cartTotal">$0.00</strong>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-primary btn-block" id="sendToKitchen" disabled>
-                    <i class="fas fa-paper-plane"></i> Enviar a Cocina
-                </button>
-            </div>
-        </div>
-
-        <!-- Órdenes Previas -->
-        <?php if (!empty($currentOrders)): ?>
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6><i class="fas fa-history"></i> Órdenes Anteriores</h6>
-                </div>
-                <div class="card-body">
-                    <div class="previous-orders">
-                        <?php foreach ($currentOrders as $order): ?>
-                            <div class="order-item status-<?php echo $order['status']; ?>">
-                                <div class="order-info">
-                                    <strong><?php echo htmlspecialchars($order['dish_name']); ?></strong>
-                                    <?php if ($order['side_dish_name']): ?>
-                                        <small>con <?php echo htmlspecialchars($order['side_dish_name']); ?></small>
-                                    <?php endif; ?>
-                                    <span class="order-quantity">x<?php echo $order['quantity']; ?></span>
-                                </div>
-                                <span class="order-status badge-status <?php echo $order['status']; ?>">
-                                    <?php 
-                                    $statusText = [
-                                        'pending' => 'Pendiente',
-                                        'preparing' => 'Preparando',
-                                        'ready' => 'Listo',
-                                        'served' => 'Servido'
-                                    ];
-                                    echo $statusText[$order['status']] ?? $order['status'];
-                                    ?>
-                                </span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -207,19 +243,14 @@
                 
                 <div class="mb-3">
                     <label class="form-label">Platillo</label>
-                    <h6 id="configDishName"></h6>
-                    <p class="text-muted" id="configDishPrice"></p>
+                    <h6 id="configDishName">-</h6>
+                    <p class="text-muted mb-0" id="configDishPrice">$0.00</p>
                 </div>
 
                 <div class="mb-3" id="sideDishGroup" style="display: none;">
                     <label class="form-label">Guisado <span class="text-danger">*</span></label>
-                    <select class="form-select" id="configSideDish" required>
-                        <option value="">-- Seleccionar --</option>
-                        <?php foreach ($sideDishes as $side): ?>
-                            <option value="<?php echo $side['id']; ?>">
-                                <?php echo htmlspecialchars($side['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
+                    <select class="form-select" id="configSideDish">
+                        <option value="">-- Seleccionar guisado --</option>
                     </select>
                     <small class="text-muted">Los desayunos requieren seleccionar un guisado</small>
                 </div>
@@ -240,7 +271,8 @@
                 <div class="mb-3">
                     <label class="form-label">Instrucciones Especiales (Opcional)</label>
                     <textarea class="form-control" id="configInstructions" rows="3" 
-                              placeholder="Ej: Sin cebolla, término 3/4, etc."></textarea>
+                              placeholder="Ej: Sin cebolla, término 3/4, etc."
+                              maxlength="200"></textarea>
                     <small class="text-muted">Máximo 200 caracteres</small>
                 </div>
 
@@ -259,14 +291,45 @@
     </div>
 </div>
 
-<!-- Bootstrap Bundle JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Modal: Detalles del Platillo -->
+<div class="modal fade" id="dishDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="detailDishName">Detalles del Platillo</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="dish-details-content">
+                    <!-- Descripción -->
+                    <div class="detail-section" id="detailDescriptionSection" style="display: none;">
+                        <label class="detail-label">
+                            <i class="fas fa-align-left"></i> Descripción:
+                        </label>
+                        <p class="detail-description" id="detailDishDescription"></p>
+                    </div>
+                    <!-- Requiere guisado -->
+                    <div class="detail-alert" id="detailSideDishAlert" style="display: none;">
+                        <i class="fas fa-utensils"></i>
+                        <span>Este platillo requiere seleccionar un guisado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnAddFromDetails">
+                    <i class="fas fa-plus"></i> Agregar al carrito
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Toast System -->
-<script src="<?php echo ASSETS_URL; ?>/js/toast.js"></script>
-
-<!-- Dashboard Base JS -->
-<script src="<?php echo ASSETS_URL; ?>/js/dashboard.js"></script>
 
 <!-- Orders Waiter JS -->
 <script>

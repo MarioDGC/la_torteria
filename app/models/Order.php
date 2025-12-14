@@ -35,16 +35,24 @@ class Order {
     public function create() {
         try {
             $query = "INSERT INTO {$this->table}
-                      (account_id, dish_id, side_dish_id, quantity, unit_price, 
-                       subtotal, special_instructions, ordered_at, status)
-                      VALUES (:account_id, :dish_id, :side_dish_id, :quantity, 
-                              :unit_price, :subtotal, :special_instructions, 
-                              NOW(), 'pending')";
-
+                    (account_id, dish_id, side_dish_id, quantity, unit_price, 
+                    subtotal, special_instructions, ordered_at, status)
+                    VALUES (:account_id, :dish_id, :side_dish_id, :quantity, 
+                            :unit_price, :subtotal, :special_instructions, 
+                            NOW(), 'pending')";
+            
             $stmt = $this->db->prepare($query);
+            
             $stmt->bindParam(':account_id', $this->accountId, PDO::PARAM_INT);
             $stmt->bindParam(':dish_id', $this->dishId, PDO::PARAM_INT);
-            $stmt->bindParam(':side_dish_id', $this->sideDishId, PDO::PARAM_INT);
+            
+            // ✅ Manejo correcto de NULL para side_dish_id
+            if ($this->sideDishId !== null) {
+                $stmt->bindParam(':side_dish_id', $this->sideDishId, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue(':side_dish_id', null, PDO::PARAM_NULL);
+            }
+            
             $stmt->bindParam(':quantity', $this->quantity, PDO::PARAM_INT);
             $stmt->bindParam(':unit_price', $this->unitPrice);
             $stmt->bindParam(':subtotal', $this->subtotal);

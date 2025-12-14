@@ -52,7 +52,8 @@ class OrdersController {
             'pageTitle' => 'Tomar Orden - Mesa ' . $account['table_number'],
             'currentView' => 'orders',
             'customCSS' => ['pages/orders'],
-            'customJS' => ['orders-waiter']
+            'customJS' => ['orders-waiter'],
+            'skipDashboardJS' => true
         ]);
     }
 
@@ -298,6 +299,68 @@ class OrdersController {
             echo json_encode([
                 'success' => false,
                 'message' => $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * API: Obtiene todos los platillos disponibles
+     */
+    public function getDishes() {
+        header('Content-Type: application/json');
+
+        try {
+            $dishModel = new Dish();
+            $categories = $dishModel->getDishesByCategory();
+
+            // Aplanar el array para JavaScript
+            $dishes = [];
+            foreach ($categories as $category) {
+                foreach ($category['dishes'] as $dish) {
+                    $dish['category_id'] = $category['id'];
+                    $dish['category_name'] = $category['name'];
+                    $dishes[] = $dish;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'dishes' => $dishes
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Error en getDishes: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener platillos'
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * API: Obtiene guisados disponibles
+     */
+    public function getSideDishes() {
+        header('Content-Type: application/json');
+
+        try {
+            $dishModel = new Dish();
+            $sideDishes = $dishModel->getAvailableSideDishes();
+
+            echo json_encode([
+                'success' => true,
+                'sideDishes' => $sideDishes
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Error en getSideDishes: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al obtener guisados'
             ]);
         }
         exit;

@@ -37,29 +37,28 @@
     </main>
 
     <!-- Bootstrap Bundle JS (incluye Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Chart.js solo si se necesita -->
-    <?php if (isset($useCharts) && $useCharts): ?>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <?php endif; ?>
-    
-    <!-- JS Global -->
+<!-- Chart.js solo si se necesita -->
+<?php if (isset($useCharts) && $useCharts): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<?php endif; ?>
+
+<!-- Toast System (global) - SIEMPRE primero -->
+<script src="<?php echo ASSETS_URL; ?>/js/toast.js"></script>
+
+<!-- Dashboard Base JS - SOLO si no está skipDashboardJS -->
+<?php if (!isset($skipDashboardJS) || $skipDashboardJS === false): ?>
     <script src="<?php echo ASSETS_URL; ?>/js/dashboard.js"></script>
+<?php endif; ?>
 
-    <!-- Toast System (global) -->
-    <script src="<?php echo ASSETS_URL; ?>/js/toast.js"></script>
+<!-- ✅ Scripts específicos opcionales -->
+<?php if (isset($customJS)): ?>
+    <?php foreach ($customJS as $js): ?>
+        <script src="<?php echo ASSETS_URL; ?>/js/<?php echo $js; ?>.js"></script>
+    <?php endforeach; ?>
+<?php endif; ?>
+
     
-    <!-- Dashboard Base JS (solo si NO hay customJS) -->
-    <?php if (empty($customJS)): ?>
-        <script src="<?php echo ASSETS_URL; ?>/js/dashboard.js"></script>
-    <?php endif; ?>
-
-    <!-- Scripts específicos opcionales -->
-    <?php if (isset($customJS)): ?>
-        <?php foreach ($customJS as $js): ?>
-            <script src="<?php echo ASSETS_URL; ?>/js/<?php echo $js; ?>.js"></script>
-        <?php endforeach; ?>
-    <?php endif; ?>
 </body>
 </html>
