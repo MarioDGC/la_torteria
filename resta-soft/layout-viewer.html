@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restro POS - Restaurant Layout</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-orange: #FF8C42;
+            --success-green: #10B981;
+            --danger-red: #EF4444;
+            --info-blue: #3B82F6;
+            --warning-yellow: #F59E0B;
+            --disabled-gray: #9CA3AF;
+            --sidebar-bg: #F9FAFB;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #E5E7EB;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            z-index: 1000;
+        }
+
+        .sidebar-item {
+            padding: 1.25rem 0;
+            text-align: center;
+            color: #6B7280;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: #FEF3E2;
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+        }
+
+        .sidebar-item i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item span {
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 80px;
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .top-header {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #E67E3C;
+            transform: translateY(-1px);
+        }
+
+        /* Restaurant Canvas Container */
+        .restaurant-canvas-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            overflow: auto;
+        }
+
+        /* Restaurant Canvas - Floor Plan */
+        .restaurant-canvas {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+
+        /* Table Element - Positioned absolutely */
+        .table-element {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid transparent;
+        }
+
+        .table-element:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        /* Table Shapes */
+        .table-element.square {
+            border-radius: 8px;
+        }
+
+        .table-element.round {
+            border-radius: 50%;
+        }
+
+        .table-element.rectangular {
+            border-radius: 8px;
+        }
+
+        /* Table Status Colors */
+        .table-element.vacant {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            border-color: var(--success-green);
+        }
+
+        .table-element.occupied {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border-color: var(--danger-red);
+        }
+
+        .table-element.reserved {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border-color: var(--warning-yellow);
+        }
+
+        .table-element.disabled {
+            background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+            border-color: var(--disabled-gray);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .table-element.disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Table Content */
+        .table-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .table-status-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+
+        .table-order-id {
+            font-size: 0.875rem;
+            color: #6B7280;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .table-time {
+            font-size: 0.75rem;
+            color: #9CA3AF;
+        }
+
+        /* Status Indicator Badge */
+        .status-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .status-indicator.vacant {
+            background-color: var(--success-green);
+        }
+
+        .status-indicator.occupied {
+            background-color: var(--danger-red);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.reserved {
+            background-color: var(--warning-yellow);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Decorative Elements */
+        .decoration-element {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* Bar Element */
+        .bar-element {
+            background: linear-gradient(135deg, #FEF3E2 0%, #FDBA74 50%, #FEF3E2 100%);
+            border: 2px solid var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #1F2937;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Wall Element */
+        .wall-element {
+            background: linear-gradient(135deg, #E5E7EB 0%, #D1D5DB 100%);
+            border: 2px solid #9CA3AF;
+        }
+
+        /* Column Element */
+        .column-element {
+            background: radial-gradient(circle, #CBD5E1 0%, #94A3B8 100%);
+            border-radius: 50%;
+            border: 3px solid #64748B;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .info-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1F2937;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: #F9FAFB;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: #1F2937;
+        }
+
+        .info-badge {
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        /* Legend */
+        .legend {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-top: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.occupied {
+            background-color: var(--danger-red);
+        }
+
+        .legend-dot.reserved {
+            background-color: var(--warning-yellow);
+        }
+
+        .legend-dot.vacant {
+            background-color: var(--success-green);
+        }
+
+        .legend-label {
+            font-weight: 500;
+            color: #1F2937;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                padding: 1rem;
+            }
+
+            .restaurant-canvas {
+                width: 100%;
+                min-width: 320px;
+                height: 500px;
+            }
+        }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .zoom-btn:hover {
+            background: #F9FAFB;
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
+        </div>
+        <div class="sidebar-item active">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Layout</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Cashier</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-receipt"></i>
+            <span>Orders</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="top-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 mb-1 fw-bold">Restro POS</h1>
+                <p class="text-muted mb-0 small">Restaurant Floor Plan</p>
+            </div>
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                <div class="search-box flex-grow-1">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Search table..." id="searchInput">
+                </div>
+                <button class="btn btn-primary-custom" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+                <button class="btn btn-outline-secondary" onclick="layoutViewer.toggleFullscreen()">
+                    <i class="fas fa-expand me-2"></i>Fullscreen
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Layout Row -->
+        <div class="row g-3">
+            <!-- Restaurant Canvas -->
+            <div class="col-12 col-lg-9">
+                <div class="restaurant-canvas-container">
+                    <div class="restaurant-canvas" id="restaurantCanvas">
+                        <!-- Tables and decorations will be rendered here -->
+
+                        <!-- Zoom Controls -->
+                        <div class="zoom-controls">
+                            <div class="zoom-btn" onclick="layoutViewer.zoomIn()" title="Zoom In">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="zoom-btn" onclick="layoutViewer.zoomOut()" title="Zoom Out">
+                                <i class="fas fa-minus"></i>
+                            </div>
+                            <div class="zoom-btn" onclick="layoutViewer.resetZoom()" title="Reset Zoom">
+                                <i class="fas fa-compress"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="col-12 col-lg-3">
+                <div class="info-panel">
+                    <div class="info-header">
+                        <i class="fas fa-info-circle me-2"></i>Overview
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-table" style="color: #6B7280;"></i>
+                            Total Tables
+                        </div>
+                        <span class="info-badge" style="background: #F3F4F6; color: #1F2937;" id="totalTables">0</span>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-check-circle" style="color: var(--success-green);"></i>
+                            Vacant
+                        </div>
+                        <span class="info-badge" style="background: #D1FAE5; color: var(--success-green);" id="vacantTables">0</span>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-users" style="color: var(--danger-red);"></i>
+                            Occupied
+                        </div>
+                        <span class="info-badge" style="background: #FEE2E2; color: var(--danger-red);" id="occupiedTables">0</span>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="fas fa-clock" style="color: var(--warning-yellow);"></i>
+                            Reserved
+                        </div>
+                        <span class="info-badge" style="background: #FEF3C7; color: var(--warning-yellow);" id="reservedTables">0</span>
+                    </div>
+
+                    <div id="selectedTableInfo" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E5E7EB;">
+                        <!-- Selected table details will appear here -->
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend">
+                    <h3 class="h6 fw-bold mb-3">Status Legend</h3>
+                    <div class="legend-item">
+                        <div class="legend-dot occupied"></div>
+                        <span class="legend-label">Occupied</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot reserved"></div>
+                        <span class="legend-label">Reserved</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot vacant"></div>
+                        <span class="legend-label">Vacant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Detail Modal -->
+    <div class="modal fade" id="tableModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Table Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * Table Model Class
+         * Represents a table with position and properties
+         */
+        class TableModel {
+            constructor(id, number, x, y, width, height, shape, capacity, status, orderId = null, time = null) {
+                this.id = id;
+                this.number = number;
+                this.x = x;           // X position in pixels
+                this.y = y;           // Y position in pixels
+                this.width = width;   // Width in pixels
+                this.height = height; // Height in pixels
+                this.shape = shape;   // square, round, rectangular
+                this.capacity = capacity;
+                this.status = status; // vacant, occupied, reserved, disabled
+                this.orderId = orderId;
+                this.time = time;     // Time occupied/reserved
+            }
+        }
+
+        /**
+         * Decoration Model Class
+         * Represents decorative elements like bars, walls, columns
+         */
+        class DecorationModel {
+            constructor(type, x, y, width, height, label = '') {
+                this.type = type;     // bar, wall, column
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.label = label;
+            }
+        }
+
+        /**
+         * Restaurant Layout Model
+         * Contains all tables and decorations for the restaurant floor plan
+         */
+        class RestaurantLayoutModel {
+            constructor(width, height, tables, decorations) {
+                this.width = width;
+                this.height = height;
+                this.tables = tables;
+                this.decorations = decorations;
+            }
+
+            /**
+             * Get statistics about table status
+             * @returns {Object} Statistics object
+             */
+            getStatistics() {
+                return {
+                    total: this.tables.length,
+                    vacant: this.tables.filter(t => t.status === 'vacant').length,
+                    occupied: this.tables.filter(t => t.status === 'occupied').length,
+                    reserved: this.tables.filter(t => t.status === 'reserved').length,
+                    disabled: this.tables.filter(t => t.status === 'disabled').length
+                };
+            }
+
+            /**
+             * Find table by ID
+             * @param {number} id - Table ID
+             * @returns {TableModel|null} Table object or null
+             */
+            findTable(id) {
+                return this.tables.find(t => t.id === id) || null;
+            }
+        }
+
+        /**
+         * Layout Data Service
+         * Handles data loading and saving (simulates API calls)
+         * In production, this would make AJAX requests to PHP backend
+         */
+        class LayoutDataService {
+            /**
+             * Load restaurant layout from storage
+             * In production: fetch('/api/layout/active')
+             * @returns {RestaurantLayoutModel} Restaurant layout
+             */
+            static loadLayout() {
+                // Sample layout data - In production, this comes from database
+                const tables = [
+                    new TableModel(1, '02', 50, 60, 120, 100, 'square', 4, 'vacant'),
+                    new TableModel(2, '05', 250, 80, 110, 110, 'round', 6, 'occupied', '#4587841', '12:30'),
+                    new TableModel(3, '03', 50, 200, 120, 100, 'square', 4, 'vacant'),
+                    new TableModel(4, '06', 250, 220, 120, 100, 'square', 4, 'reserved', null, '18:15'),
+                    new TableModel(5, '04', 50, 340, 120, 100, 'square', 4, 'reserved', null, '19:30'),
+                    new TableModel(6, '07', 250, 360, 120, 100, 'square', 4, 'vacant'),
+                    new TableModel(7, '08', 420, 60, 140, 110, 'rectangular', 6, 'occupied', '#4587845', '11:45'),
+                    new TableModel(8, '09', 420, 220, 140, 110, 'rectangular', 6, 'vacant'),
+                    new TableModel(9, '10', 420, 380, 140, 110, 'rectangular', 6, 'occupied', '#4587847', '13:15')
+                ];
+
+                const decorations = [
+                    new DecorationModel('bar', 700, 60, 60, 420, 'Bar'),
+                    new DecorationModel('wall', 10, 10, 10, 580),
+                    new DecorationModel('wall', 880, 10, 10, 580),
+                    new DecorationModel('column', 600, 100, 40, 40),
+                    new DecorationModel('column', 600, 300, 40, 40)
+                ];
+
+                return new RestaurantLayoutModel(900, 600, tables, decorations);
+            }
+
+            /**
+             * Save layout to storage
+             * In production: POST to '/api/layout/save'
+             * @param {RestaurantLayoutModel} layout - Layout to save
+             */
+            static saveLayout(layout) {
+                // In production, send to backend
+                console.log('Saving layout:', JSON.stringify(layout, null, 2));
+                localStorage.setItem('restaurantLayout', JSON.stringify(layout));
+            }
+        }
+
+        /**
+         * Layout Viewer Class
+         * Handles rendering and interaction with the restaurant floor plan
+         * Implements the Strategy Pattern for different rendering approaches
+         */
+        class LayoutViewer {
+            constructor() {
+                this.canvas = document.getElementById('restaurantCanvas');
+                this.layout = LayoutDataService.loadLayout();
+                this.selectedTable = null;
+                this.zoomLevel = 1;
+                this.modal = new bootstrap.Modal(document.getElementById('tableModal'));
+
+                this.init();
+            }
+
+            /**
+             * Initialize the viewer
+             */
+            init() {
+                this.render();
+                this.updateStatistics();
+                this.attachEventListeners();
+
+                // Auto-refresh every 30 seconds to update table status
+                setInterval(() => this.updateTableStatus(), 30000);
+            }
+
+            /**
+             * Render the complete layout
+             */
+            render() {
+                this.canvas.innerHTML = '';
+
+                // Render decorations first (background layer)
+                this.layout.decorations.forEach(decoration => {
+                    this.renderDecoration(decoration);
+                });
+
+                // Render tables (foreground layer)
+                this.layout.tables.forEach(table => {
+                    this.renderTable(table);
+                });
+
+                // Re-add zoom controls
+                this.canvas.innerHTML += `
+                    <div class="zoom-controls">
+                        <div class="zoom-btn" onclick="layoutViewer.zoomIn()" title="Zoom In">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="zoom-btn" onclick="layoutViewer.zoomOut()" title="Zoom Out">
+                            <i class="fas fa-minus"></i>
+                        </div>
+                        <div class="zoom-btn" onclick="layoutViewer.resetZoom()" title="Reset Zoom">
+                            <i class="fas fa-compress"></i>
+                        </div>
+                    </div>
+                `;
+            }
+
+            /**
+             * Render a single table element
+             * @param {TableModel} table - Table to render
+             */
+            renderTable(table) {
+                const tableEl = document.createElement('div');
+                tableEl.className = `table-element ${table.shape} ${table.status}`;
+                tableEl.style.left = `${table.x}px`;
+                tableEl.style.top = `${table.y}px`;
+                tableEl.style.width = `${table.width}px`;
+                tableEl.style.height = `${table.height}px`;
+                tableEl.dataset.tableId = table.id;
+
+                tableEl.innerHTML = `
+                    <span class="status-indicator ${table.status}"></span>
+                    <div class="table-number">${table.number}</div>
+                    <div class="table-status-label">${this.getStatusLabel(table.status)}</div>
+                    ${table.orderId ? `<div class="table-order-id">${table.orderId}</div>` : ''}
+                    ${table.time ? `<div class="table-time">${table.time}</div>` : ''}
+                `;
+
+                // Add click event listener
+                if (table.status !== 'disabled') {
+                    tableEl.addEventListener('click', () => this.handleTableClick(table.id));
+                }
+
+                this.canvas.appendChild(tableEl);
+            }
+
+            /**
+             * Render a decoration element
+             * @param {DecorationModel} decoration - Decoration to render
+             */
+            renderDecoration(decoration) {
+                const decorEl = document.createElement('div');
+                decorEl.className = `decoration-element ${decoration.type}-element`;
+                decorEl.style.left = `${decoration.x}px`;
+                decorEl.style.top = `${decoration.y}px`;
+                decorEl.style.width = `${decoration.width}px`;
+                decorEl.style.height = `${decoration.height}px`;
+
+                if (decoration.label) {
+                    decorEl.textContent = decoration.label;
+                }
+
+                this.canvas.appendChild(decorEl);
+            }
+
+            /**
+             * Get human-readable status label
+             * @param {string} status - Table status
+             * @returns {string} Label
+             */
+            getStatusLabel(status) {
+                const labels = {
+                    vacant: 'Vacant',
+                    occupied: 'Occupied',
+                    reserved: 'Reserved',
+                    disabled: 'Disabled'
+                };
+                return labels[status] || status;
+            }
+
+            /**
+             * Handle table click event
+             * @param {number} tableId - Table ID
+             */
+            handleTableClick(tableId) {
+                const table = this.layout.findTable(tableId);
+                if (!table) return;
+
+                this.selectedTable = table;
+                this.showTableModal(table);
+                this.updateSelectedTableInfo(table);
+            }
+
+            /**
+             * Show table details in modal
+             * @param {TableModel} table - Table to display
+             */
+            showTableModal(table) {
+                document.getElementById('modalTitle').textContent = `Table ${table.number}`;
+
+                const statusColors = {
+                    vacant: 'success',
+                    occupied: 'danger',
+                    reserved: 'warning',
+                    disabled: 'secondary'
+                };
+
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="mb-3">
+                        <span class="badge bg-${statusColors[table.status]} mb-3">
+                            ${this.getStatusLabel(table.status)}
+                        </span>
+                    </div>
+
+                    ${table.orderId ? `
+                        <div class="mb-3">
+                            <strong>Order ID:</strong> ${table.orderId}<br>
+                            <strong>Time:</strong> ${table.time || 'N/A'}
+                        </div>
+                    ` : ''}
+
+                    <div class="mb-3">
+                        <strong>Capacity:</strong> ${table.capacity} guests<br>
+                        <strong>Shape:</strong> ${table.shape}<br>
+                        <strong>Position:</strong> (${table.x}, ${table.y})
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        ${table.status === 'vacant' ? `
+                            <button class="btn btn-primary-custom">
+                                <i class="fas fa-plus me-2"></i>Start Order
+                            </button>
+                        ` : table.status === 'occupied' ? `
+                            <button class="btn btn-success">
+                                <i class="fas fa-eye me-2"></i>View Order
+                            </button>
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-times me-2"></i>Clear Table
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                this.modal.show();
+            }
+
+            /**
+             * Update selected table info in sidebar
+             * @param {TableModel} table - Selected table
+             */
+            updateSelectedTableInfo(table) {
+                const infoEl = document.getElementById('selectedTableInfo');
+                infoEl.style.display = 'block';
+                infoEl.innerHTML = `
+                    <div class="fw-bold mb-2">Selected: Table ${table.number}</div>
+                    <div class="small text-muted">
+                        ${table.capacity} guests • ${table.shape}
+                    </div>
+                `;
+            }
+
+            /**
+             * Update statistics in sidebar
+             */
+            updateStatistics() {
+                const stats = this.layout.getStatistics();
+                document.getElementById('totalTables').textContent = stats.total;
+                document.getElementById('vacantTables').textContent = stats.vacant;
+                document.getElementById('occupiedTables').textContent = stats.occupied;
+                document.getElementById('reservedTables').textContent = stats.reserved;
+            }
+
+            /**
+             * Attach event listeners
+             */
+            attachEventListeners() {
+                // Search functionality
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.searchTable(e.target.value);
+                });
+
+                // Sidebar navigation
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+            }
+
+            /**
+             * Search and highlight table
+             * @param {string} searchTerm - Search term
+             */
+            searchTable(searchTerm) {
+                if (!searchTerm) {
+                    // Reset all tables
+                    document.querySelectorAll('.table-element').forEach(el => {
+                        el.style.opacity = '1';
+                    });
+                    return;
+                }
+
+                const term = searchTerm.toLowerCase();
+                document.querySelectorAll('.table-element').forEach(el => {
+                    const tableId = parseInt(el.dataset.tableId);
+                    const table = this.layout.findTable(tableId);
+
+                    if (table && (
+                        table.number.toLowerCase().includes(term) ||
+                        (table.orderId && table.orderId.toLowerCase().includes(term))
+                    )) {
+                        el.style.opacity = '1';
+                        el.style.transform = 'scale(1.1)';
+                    } else {
+                        el.style.opacity = '0.3';
+                        el.style.transform = 'scale(1)';
+                    }
+                });
+            }
+
+            /**
+             * Zoom in on canvas
+             */
+            zoomIn() {
+                this.zoomLevel = Math.min(this.zoomLevel + 0.1, 2);
+                this.applyZoom();
+            }
+
+            /**
+             * Zoom out on canvas
+             */
+            zoomOut() {
+                this.zoomLevel = Math.max(this.zoomLevel - 0.1, 0.5);
+                this.applyZoom();
+            }
+
+            /**
+             * Reset zoom to default
+             */
+            resetZoom() {
+                this.zoomLevel = 1;
+                this.applyZoom();
+            }
+
+            /**
+             * Apply zoom transformation
+             */
+            applyZoom() {
+                this.canvas.style.transform = `scale(${this.zoomLevel})`;
+                this.canvas.style.transformOrigin = 'top left';
+            }
+
+            /**
+             * Toggle fullscreen mode
+             */
+            toggleFullscreen() {
+                const container = document.querySelector('.restaurant-canvas-container');
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            /**
+             * Update table status (simulates real-time updates)
+             * In production, this would fetch from API
+             */
+            updateTableStatus() {
+                console.log('Updating table status...');
+                // In production: fetch updated status from API and re-render
+            }
+        }
+
+        // Initialize the layout viewer
+        const layoutViewer = new LayoutViewer();
+
+        console.log('Layout loaded:', layoutViewer.layout);
+    </script>
+</body>
+</html>

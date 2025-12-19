@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restro POS - Tables Management</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-orange: #FF8C42;
+            --success-green: #10B981;
+            --danger-red: #EF4444;
+            --info-blue: #3B82F6;
+            --warning-yellow: #F59E0B;
+            --disabled-gray: #9CA3AF;
+            --sidebar-bg: #F9FAFB;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #E5E7EB;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            z-index: 1000;
+        }
+
+        .sidebar-item {
+            padding: 1.25rem 0;
+            text-align: center;
+            color: #6B7280;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: #FEF3E2;
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+        }
+
+        .sidebar-item i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item span {
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 80px;
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .top-header {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #E67E3C;
+            transform: translateY(-1px);
+        }
+
+        /* Filter Pills */
+        .filter-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .filter-pill {
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            border: 2px solid #E5E7EB;
+            background: white;
+            color: #6B7280;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .filter-pill:hover {
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+        }
+
+        .filter-pill.active {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            color: white;
+        }
+
+        .info-alert {
+            background-color: #FEF3E2;
+            border-left: 4px solid var(--primary-orange);
+            padding: 0.875rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .info-alert i {
+            color: var(--primary-orange);
+            font-size: 1.25rem;
+        }
+
+        /* Tables Grid */
+        .tables-grid {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            min-height: 500px;
+        }
+
+        /* Table Card - Base styles */
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 3px solid transparent;
+            height: 180px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        /* SVG Container */
+        .table-svg {
+            width: 100%;
+            height: 140px;
+        }
+
+        /* Table SVG Elements - Default Colors */
+        .table-shape {
+            fill: #D1D5DB;
+            transition: fill 0.3s;
+        }
+
+        .chair {
+            fill: #E5E7EB;
+            transition: fill 0.3s;
+        }
+
+        .table-text {
+            font-size: 18px;
+            font-weight: 700;
+            fill: #1F2937;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        .order-text {
+            font-size: 12px;
+            font-weight: 600;
+            fill: #6B7280;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            border-radius: 0 0 8px 8px;
+            transition: height 0.3s;
+        }
+
+        .table-card:hover .status-bar {
+            height: 8px;
+        }
+
+        /* Vacant Status (Green) */
+        .table-card.vacant {
+            background: #FAFFFE;
+            border-color: var(--success-green);
+        }
+
+        .table-card.vacant .table-shape {
+            fill: #A7F3D0;
+        }
+
+        .table-card.vacant .chair {
+            fill: #D1FAE5;
+        }
+
+        .table-card.vacant .status-bar {
+            background-color: var(--success-green);
+        }
+
+        /* Occupied Status (Red) */
+        .table-card.occupied {
+            background: #FFFAFA;
+            border-color: var(--danger-red);
+        }
+
+        .table-card.occupied .table-shape {
+            fill: #FECACA;
+        }
+
+        .table-card.occupied .chair {
+            fill: #FEE2E2;
+        }
+
+        .table-card.occupied .status-bar {
+            background-color: var(--danger-red);
+        }
+
+        /* Reserved Status (Blue) */
+        .table-card.reserved {
+            background: #FAFCFF;
+            border-color: var(--info-blue);
+        }
+
+        .table-card.reserved .table-shape {
+            fill: #BFDBFE;
+        }
+
+        .table-card.reserved .chair {
+            fill: #DBEAFE;
+        }
+
+        .table-card.reserved .status-bar {
+            background-color: var(--info-blue);
+        }
+
+        /* Disabled Status (Gray) */
+        .table-card.disabled {
+            background: #FAFAFA;
+            border-color: var(--disabled-gray);
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .table-card.disabled .table-shape {
+            fill: #E5E7EB;
+        }
+
+        .table-card.disabled .chair {
+            fill: #F3F4F6;
+        }
+
+        .table-card.disabled .status-bar {
+            background-color: var(--disabled-gray);
+        }
+
+        .table-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        .status-badge.vacant {
+            background-color: var(--success-green);
+        }
+
+        .status-badge.occupied {
+            background-color: var(--danger-red);
+        }
+
+        .status-badge.reserved {
+            background-color: var(--info-blue);
+        }
+
+        .status-badge.disabled {
+            background-color: var(--disabled-gray);
+        }
+
+        /* Legend */
+        .status-legend {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-top: 1.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.occupied {
+            background-color: var(--danger-red);
+        }
+
+        .legend-dot.reserved {
+            background-color: var(--info-blue);
+        }
+
+        .legend-dot.vacant {
+            background-color: var(--success-green);
+        }
+
+        .legend-label {
+            font-weight: 500;
+            color: #1F2937;
+        }
+
+        /* Table Detail Panel */
+        .table-detail-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .detail-header {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1F2937;
+        }
+
+        .detail-info {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .detail-label {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                padding: 1rem;
+            }
+
+            .table-card {
+                height: 160px;
+            }
+
+            .table-svg {
+                height: 120px;
+            }
+
+            .filter-pill {
+                padding: 0.4rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
+        </div>
+        <div class="sidebar-item active">
+            <i class="fas fa-table"></i>
+            <span>Tables</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Cashier</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-receipt"></i>
+            <span>Orders</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="top-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 mb-1 fw-bold">Restro POS</h1>
+                <p class="text-muted mb-0 small">Tables Management</p>
+            </div>
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                <div class="search-box flex-grow-1">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Search tables..." id="searchInput">
+                </div>
+                <button class="btn btn-primary-custom" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters & Info Alert -->
+        <div class="filter-container">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
+                <div>
+                    <button class="filter-pill active" data-filter="all">All Tables</button>
+                    <button class="filter-pill" data-filter="vacant">Vacant</button>
+                    <button class="filter-pill" data-filter="occupied">Occupied</button>
+                    <button class="filter-pill" data-filter="reserved">Reserved</button>
+                    <button class="filter-pill" data-filter="disabled">Disabled</button>
+                </div>
+                <a href="#" class="text-decoration-none fw-semibold" style="color: var(--primary-orange);">Show all tables</a>
+            </div>
+
+            <div class="info-alert">
+                <i class="fas fa-info-circle"></i>
+                <span>Tables visible are for 4-6 guests occupancy.</span>
+            </div>
+        </div>
+
+        <!-- Tables Grid & Detail Panel -->
+        <div class="row g-3">
+            <!-- Tables Grid -->
+            <div class="col-12 col-lg-9">
+                <div class="tables-grid">
+                    <div class="row g-3" id="tablesContainer">
+                        <!-- Tables will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Detail Panel -->
+            <div class="col-12 col-lg-3">
+                <div class="table-detail-panel" id="detailPanel">
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-table fa-3x mb-3 opacity-25"></i>
+                        <p>Select a table to view details</p>
+                    </div>
+                </div>
+
+                <!-- Status Legend -->
+                <div class="status-legend mt-3">
+                    <h3 class="h6 fw-bold mb-3">Table Status</h3>
+                    <div class="legend-item">
+                        <div class="legend-dot occupied"></div>
+                        <span class="legend-label">Occupied</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot reserved"></div>
+                        <span class="legend-label">Order on Hold</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot vacant"></div>
+                        <span class="legend-label">Vacant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Assignment Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Select & Place Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center py-4" id="modalContent">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * Table Data Model
+         * Represents the structure of each table in the system
+         */
+        class TableModel {
+            constructor(id, number, status, orderId = null, capacity = 4, shape = 'square') {
+                this.id = id;
+                this.number = number;
+                this.status = status; // vacant, occupied, reserved, disabled
+                this.orderId = orderId;
+                this.capacity = capacity;
+                this.shape = shape; // square, round
+            }
+        }
+
+        /**
+         * SVG Generator Class
+         * Generates table SVG representations using the Factory Pattern
+         */
+        class SvgTableGenerator {
+            /**
+             * Generate square table SVG with chairs
+             * @param {TableModel} table - Table object
+             * @returns {string} SVG markup
+             */
+            static generateSquareTable(table) {
+                return `
+                    <svg viewBox="0 0 200 200" class="table-svg">
+                        <!-- Top chairs -->
+                        <rect x="50" y="15" width="25" height="12" class="chair" rx="2"/>
+                        <rect x="85" y="15" width="30" height="12" class="chair" rx="2"/>
+                        <rect x="125" y="15" width="25" height="12" class="chair" rx="2"/>
+
+                        <!-- Main table (square) -->
+                        <rect x="55" y="50" width="90" height="90" class="table-shape" rx="8"/>
+
+                        <!-- Bottom chairs -->
+                        <rect x="50" y="173" width="25" height="12" class="chair" rx="2"/>
+                        <rect x="85" y="173" width="30" height="12" class="chair" rx="2"/>
+                        <rect x="125" y="173" width="25" height="12" class="chair" rx="2"/>
+
+                        <!-- Left chairs -->
+                        <rect x="15" y="65" width="12" height="25" class="chair" rx="2"/>
+                        <rect x="15" y="105" width="12" height="25" class="chair" rx="2"/>
+
+                        <!-- Right chairs -->
+                        <rect x="173" y="65" width="12" height="25" class="chair" rx="2"/>
+                        <rect x="173" y="105" width="12" height="25" class="chair" rx="2"/>
+
+                        <!-- Table number -->
+                        <text x="100" y="${table.orderId ? '90' : '100'}" class="table-text">${table.number}</text>
+                        ${table.orderId ? `<text x="100" y="110" class="order-text">${table.orderId}</text>` : ''}
+                    </svg>
+                `;
+            }
+
+            /**
+             * Generate round table SVG with chairs
+             * @param {TableModel} table - Table object
+             * @returns {string} SVG markup
+             */
+            static generateRoundTable(table) {
+                return `
+                    <svg viewBox="0 0 200 200" class="table-svg">
+                        <!-- Top chairs -->
+                        <rect x="68" y="20" width="25" height="12" class="chair" rx="2"/>
+                        <rect x="107" y="20" width="25" height="12" class="chair" rx="2"/>
+
+                        <!-- Side chairs (left and right arcs) -->
+                        <rect x="25" y="75" width="12" height="22" class="chair" rx="2"/>
+                        <rect x="25" y="103" width="12" height="22" class="chair" rx="2"/>
+                        <rect x="163" y="75" width="12" height="22" class="chair" rx="2"/>
+                        <rect x="163" y="103" width="12" height="22" class="chair" rx="2"/>
+
+                        <!-- Main table (circle) -->
+                        <circle cx="100" cy="100" r="45" class="table-shape"/>
+
+                        <!-- Bottom chairs -->
+                        <rect x="68" y="168" width="25" height="12" class="chair" rx="2"/>
+                        <rect x="107" y="168" width="25" height="12" class="chair" rx="2"/>
+
+                        <!-- Table number -->
+                        <text x="100" y="${table.orderId ? '95' : '105'}" class="table-text">${table.number}</text>
+                        ${table.orderId ? `<text x="100" y="115" class="order-text">${table.orderId}</text>` : ''}
+                    </svg>
+                `;
+            }
+
+            /**
+             * Factory method to generate appropriate table SVG
+             * Implements the Factory Pattern for object creation
+             * @param {TableModel} table - Table object
+             * @returns {string} SVG markup
+             */
+            static generate(table) {
+                return table.shape === 'round'
+                    ? this.generateRoundTable(table)
+                    : this.generateSquareTable(table);
+            }
+        }
+
+        /**
+         * Tables Manager Class
+         * Handles all table-related operations following the Single Responsibility Principle
+         */
+        class TablesManager {
+            constructor() {
+                this.tables = this.initializeTables();
+                this.currentFilter = 'all';
+                this.selectedTable = null;
+                this.orderModal = null;
+            }
+
+            /**
+             * Initialize sample table data
+             * In production, this would fetch from API
+             * @returns {Array<TableModel>} Array of table objects
+             */
+            initializeTables() {
+                return [
+                    new TableModel(1, 'T43', 'vacant', null, 4, 'square'),
+                    new TableModel(2, 'T45', 'reserved', '#457841', 6, 'round'),
+                    new TableModel(3, 'T46', 'vacant', null, 4, 'square'),
+                    new TableModel(4, 'T47', 'occupied', '#457875', 6, 'square'),
+                    new TableModel(5, 'T51', 'occupied', '#457894', 8, 'round'),
+                    new TableModel(6, 'T52', 'vacant', null, 4, 'square'),
+                    new TableModel(7, 'T48', 'vacant', null, 6, 'round'),
+                    new TableModel(8, 'T49', 'occupied', '#457896', 4, 'square'),
+                    new TableModel(9, 'T50', 'reserved', '#457897', 6, 'square'),
+                    new TableModel(10, 'T53', 'disabled', null, 4, 'round'),
+                    new TableModel(11, 'T54', 'vacant', null, 8, 'square'),
+                    new TableModel(12, 'T55', 'vacant', null, 4, 'round')
+                ];
+            }
+
+            /**
+             * Filter tables by status
+             * @param {string} status - Status to filter by
+             * @returns {Array<TableModel>} Filtered tables
+             */
+            filterTables(status) {
+                if (status === 'all') return this.tables;
+                return this.tables.filter(table => table.status === status);
+            }
+
+            /**
+             * Search tables by number or order ID
+             * @param {string} searchTerm - Search term
+             * @returns {Array<TableModel>} Matching tables
+             */
+            searchTables(searchTerm) {
+                if (!searchTerm) return this.tables;
+                const term = searchTerm.toLowerCase();
+                return this.tables.filter(table =>
+                    table.number.toLowerCase().includes(term) ||
+                    (table.orderId && table.orderId.toLowerCase().includes(term))
+                );
+            }
+
+            /**
+             * Get table statistics
+             * @returns {Object} Statistics object
+             */
+            getStatistics() {
+                return {
+                    total: this.tables.length,
+                    vacant: this.tables.filter(t => t.status === 'vacant').length,
+                    occupied: this.tables.filter(t => t.status === 'occupied').length,
+                    reserved: this.tables.filter(t => t.status === 'reserved').length,
+                    disabled: this.tables.filter(t => t.status === 'disabled').length
+                };
+            }
+        }
+
+        /**
+         * UI Controller Class
+         * Handles all DOM manipulations and user interactions
+         * Implements the Observer Pattern for event handling
+         */
+        class UIController {
+            constructor(tablesManager) {
+                this.tablesManager = tablesManager;
+                this.container = document.getElementById('tablesContainer');
+                this.detailPanel = document.getElementById('detailPanel');
+                this.searchInput = document.getElementById('searchInput');
+                this.orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+
+                this.init();
+            }
+
+            /**
+             * Initialize event listeners
+             */
+            init() {
+                // Filter buttons
+                document.querySelectorAll('.filter-pill').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.handleFilterClick(e));
+                });
+
+                // Search input with debounce pattern for performance optimization
+                let searchTimeout;
+                this.searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        this.handleSearch(e.target.value);
+                    }, 300);
+                });
+
+                // Sidebar navigation
+                document.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                // Initial render
+                this.renderTables();
+            }
+
+            /**
+             * Handle filter button click
+             * @param {Event} e - Click event
+             */
+            handleFilterClick(e) {
+                document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+
+                const filter = e.target.dataset.filter;
+                this.tablesManager.currentFilter = filter;
+                this.renderTables();
+            }
+
+            /**
+             * Handle search input
+             * @param {string} searchTerm - Search term
+             */
+            handleSearch(searchTerm) {
+                const filteredTables = this.tablesManager.searchTables(searchTerm);
+                this.renderTables(filteredTables);
+            }
+
+            /**
+             * Render tables grid using Template Method Pattern
+             * @param {Array<TableModel>} tablesToRender - Optional filtered tables array
+             */
+            renderTables(tablesToRender = null) {
+                const tables = tablesToRender || this.tablesManager.filterTables(this.tablesManager.currentFilter);
+
+                this.container.innerHTML = tables.map(table => `
+                    <div class="col-6 col-md-4 col-xl-3">
+                        <div class="table-card ${table.status}" data-table-id="${table.id}">
+                            <span class="status-badge ${table.status}"></span>
+                            ${SvgTableGenerator.generate(table)}
+                            <div class="status-bar"></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click listeners to table cards
+                document.querySelectorAll('.table-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (!card.classList.contains('disabled')) {
+                            this.handleTableClick(parseInt(card.dataset.tableId));
+                        }
+                    });
+                });
+            }
+
+            /**
+             * Handle table card click
+             * @param {number} tableId - Table ID
+             */
+            handleTableClick(tableId) {
+                const table = this.tablesManager.tables.find(t => t.id === tableId);
+                if (!table) return;
+
+                this.tablesManager.selectedTable = table;
+                this.renderDetailPanel(table);
+
+                // Show modal for vacant tables
+                if (table.status === 'vacant') {
+                    this.showOrderModal(table);
+                }
+            }
+
+            /**
+             * Render detail panel for selected table
+             * @param {TableModel} table - Selected table
+             */
+            renderDetailPanel(table) {
+                const statusColors = {
+                    vacant: 'success',
+                    occupied: 'danger',
+                    reserved: 'info',
+                    disabled: 'secondary'
+                };
+
+                const statusLabels = {
+                    vacant: 'Vacant',
+                    occupied: 'Occupied',
+                    reserved: 'Order on Hold',
+                    disabled: 'Disabled'
+                };
+
+                this.detailPanel.innerHTML = `
+                    <div class="detail-header">Table ${table.number}</div>
+
+                    <div class="detail-info">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="badge bg-${statusColors[table.status]}">${statusLabels[table.status]}</span>
+                        </div>
+                    </div>
+
+                    ${table.orderId ? `
+                        <div class="detail-info">
+                            <div class="detail-label">Order ID</div>
+                            <div class="detail-value">${table.orderId}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="detail-info">
+                        <div class="detail-label">Capacity</div>
+                        <div class="detail-value">${table.capacity} Guests</div>
+                    </div>
+
+                    <div class="detail-info">
+                        <div class="detail-label">Shape</div>
+                        <div class="detail-value text-capitalize">${table.shape}</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        ${table.status === 'vacant' ? `
+                            <button class="btn btn-primary-custom" onclick="uiController.showOrderModal(${JSON.stringify(table).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-plus me-2"></i>Select & Place Order
+                            </button>
+                        ` : table.status === 'occupied' ? `
+                            <button class="btn btn-success">
+                                <i class="fas fa-eye me-2"></i>View Order
+                            </button>
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-times me-2"></i>Clear Table
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            /**
+             * Show order assignment modal
+             * @param {TableModel} table - Table to assign order to
+             */
+            showOrderModal(table) {
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="mb-4">
+                        <i class="fas fa-utensils fa-4x mb-3" style="color: var(--primary-orange);"></i>
+                        <h4 class="fw-bold mb-2">Table ${table.number}</h4>
+                        <p class="text-muted">Ready to take order for ${table.capacity} guests</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary-custom btn-lg" onclick="uiController.assignOrder()">
+                            <i class="fas fa-plus-circle me-2"></i>Start New Order
+                        </button>
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                `;
+
+                this.orderModal.show();
+            }
+
+            /**
+             * Assign order to table (placeholder for actual implementation)
+             * In production, this would make an AJAX call to the backend
+             */
+            assignOrder() {
+                const table = this.tablesManager.selectedTable;
+                if (table) {
+                    // Simulation of order creation
+                    console.log(`Creating new order for Table ${table.number}`);
+                    alert(`Starting new order for Table ${table.number}\n\nIn production, this would:\n- Create order in database\n- Navigate to order page\n- Update table status`);
+                    this.orderModal.hide();
+                }
+            }
+        }
+
+        // Initialize the application using Dependency Injection Pattern
+        const tablesManager = new TablesManager();
+        const uiController = new UIController(tablesManager);
+
+        // Display statistics in console for debugging
+        console.log('Table Statistics:', tablesManager.getStatistics());
+    </script>
+</body>
+</html>

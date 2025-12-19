@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restro POS - Layout Editor</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-orange: #FF8C42;
+            --success-green: #10B981;
+            --danger-red: #EF4444;
+            --info-blue: #3B82F6;
+            --warning-yellow: #F59E0B;
+            --disabled-gray: #9CA3AF;
+            --sidebar-bg: #F9FAFB;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #E5E7EB;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            z-index: 1000;
+        }
+
+        .sidebar-item {
+            padding: 1.25rem 0;
+            text-align: center;
+            color: #6B7280;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: #FEF3E2;
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+        }
+
+        .sidebar-item i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item span {
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 80px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .top-header {
+            background-color: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #E5E7EB;
+            box-shadow: var(--card-shadow);
+            flex-shrink: 0;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #E67E3C;
+            transform: translateY(-1px);
+        }
+
+        /* Editor Layout */
+        .editor-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Tools Panel */
+        .tools-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #E5E7EB;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .tools-section {
+            margin-bottom: 2rem;
+        }
+
+        .tools-header {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tool Item - Draggable */
+        .tool-item {
+            background: #F9FAFB;
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: move;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tool-item:hover {
+            background: white;
+            border-color: var(--primary-orange);
+            transform: translateX(4px);
+        }
+
+        .tool-item.dragging {
+            opacity: 0.5;
+        }
+
+        .tool-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary-orange);
+            flex-shrink: 0;
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #1F2937;
+            margin-bottom: 0.125rem;
+        }
+
+        .tool-desc {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            flex: 1;
+            background: #E5E7EB;
+            overflow: auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* Restaurant Canvas - Editable */
+        .restaurant-canvas {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            background: white;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .restaurant-canvas.drag-over {
+            border-color: var(--primary-orange);
+            background: #FEF3E2;
+        }
+
+        /* Grid Pattern (optional visual aid) */
+        .restaurant-canvas.show-grid {
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Placed Element on Canvas */
+        .canvas-element {
+            position: absolute;
+            border: 2px solid transparent;
+            cursor: move;
+            transition: box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .canvas-element:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .canvas-element.selected {
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2);
+            z-index: 20;
+        }
+
+        .canvas-element.dragging {
+            opacity: 0.7;
+            z-index: 100;
+        }
+
+        /* Table Elements */
+        .canvas-element.table {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            border-radius: 8px;
+            border-color: var(--success-green);
+            flex-direction: column;
+        }
+
+        .canvas-element.table.round {
+            border-radius: 50%;
+        }
+
+        .canvas-element.table .element-label {
+            font-size: 1rem;
+            color: #1F2937;
+        }
+
+        .canvas-element.table .element-capacity {
+            font-size: 0.75rem;
+            color: #6B7280;
+        }
+
+        /* Decoration Elements */
+        .canvas-element.bar {
+            background: linear-gradient(135deg, #FEF3E2 0%, #FDBA74 50%, #FEF3E2 100%);
+            border-radius: 8px;
+            border-color: var(--primary-orange);
+            color: #1F2937;
+        }
+
+        .canvas-element.wall {
+            background: linear-gradient(135deg, #E5E7EB 0%, #D1D5DB 100%);
+            border-color: #9CA3AF;
+        }
+
+        .canvas-element.column {
+            background: radial-gradient(circle, #CBD5E1 0%, #94A3B8 100%);
+            border-radius: 50%;
+            border-color: #64748B;
+        }
+
+        /* Delete Button */
+        .delete-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            width: 24px;
+            height: 24px;
+            background: var(--danger-red);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .canvas-element.selected .delete-btn {
+            display: flex;
+        }
+
+        .delete-btn:hover {
+            background: #DC2626;
+            transform: scale(1.1);
+        }
+
+        /* Resize Handles */
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-orange);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .canvas-element.selected .resize-handle {
+            display: block;
+        }
+
+        .resize-handle.se {
+            bottom: -5px;
+            right: -5px;
+            cursor: se-resize;
+        }
+
+        .resize-handle.sw {
+            bottom: -5px;
+            left: -5px;
+            cursor: sw-resize;
+        }
+
+        .resize-handle.ne {
+            top: -5px;
+            right: -5px;
+            cursor: ne-resize;
+        }
+
+        .resize-handle.nw {
+            top: -5px;
+            left: -5px;
+            cursor: nw-resize;
+        }
+
+        /* Properties Panel */
+        .properties-panel {
+            width: 280px;
+            background: white;
+            border-left: 1px solid #E5E7EB;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .properties-header {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1F2937;
+        }
+
+        .property-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .property-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .property-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .property-input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            z-index: 50;
+        }
+
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6B7280;
+        }
+
+        .toolbar-btn:hover {
+            background: #F9FAFB;
+            color: var(--primary-orange);
+        }
+
+        .toolbar-btn.active {
+            background: #FEF3E2;
+            color: var(--primary-orange);
+        }
+
+        /* Empty State */
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #9CA3AF;
+            pointer-events: none;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .tools-panel,
+            .properties-panel {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .properties-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+            }
+
+            .tools-panel {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-item">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Layout</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Cashier</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-receipt"></i>
+            <span>Orders</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </div>
+        <div class="sidebar-item active">
+            <i class="fas fa-edit"></i>
+            <span>Editor</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="top-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h4 mb-0 fw-bold">Layout Editor</h1>
+                <p class="text-muted mb-0 small">Drag elements to design your restaurant floor plan</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" onclick="layoutEditor.clearCanvas()">
+                    <i class="fas fa-trash me-2"></i>Clear All
+                </button>
+                <button class="btn btn-outline-secondary" onclick="layoutEditor.loadTemplate()">
+                    <i class="fas fa-file-import me-2"></i>Load Template
+                </button>
+                <button class="btn btn-primary-custom" onclick="layoutEditor.saveLayout()">
+                    <i class="fas fa-save me-2"></i>Save Layout
+                </button>
+            </div>
+        </div>
+
+        <!-- Editor Container -->
+        <div class="editor-container">
+            <!-- Tools Panel -->
+            <div class="tools-panel">
+                <div class="tools-section">
+                    <div class="tools-header">
+                        <i class="fas fa-table me-2"></i>Tables
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="table" data-shape="square" data-size="120x100" data-capacity="4">
+                        <div class="tool-icon">
+                            <i class="fas fa-square"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Square Table</div>
+                            <div class="tool-desc">4 guests</div>
+                        </div>
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="table" data-shape="round" data-size="110x110" data-capacity="6">
+                        <div class="tool-icon">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Round Table</div>
+                            <div class="tool-desc">6 guests</div>
+                        </div>
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="table" data-shape="rectangular" data-size="140x100" data-capacity="6">
+                        <div class="tool-icon">
+                            <i class="fas fa-rectangle-wide"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Rectangular Table</div>
+                            <div class="tool-desc">6 guests</div>
+                        </div>
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="table" data-shape="square" data-size="150x120" data-capacity="8">
+                        <div class="tool-icon">
+                            <i class="fas fa-square"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Large Square</div>
+                            <div class="tool-desc">8 guests</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tools-section">
+                    <div class="tools-header">
+                        <i class="fas fa-shapes me-2"></i>Decorations
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="bar" data-size="60x300">
+                        <div class="tool-icon" style="color: var(--primary-orange);">
+                            <i class="fas fa-wine-glass"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Bar</div>
+                            <div class="tool-desc">Vertical bar</div>
+                        </div>
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="wall" data-size="10x400">
+                        <div class="tool-icon" style="color: #9CA3AF;">
+                            <i class="fas fa-grip-lines-vertical"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Wall</div>
+                            <div class="tool-desc">Structural wall</div>
+                        </div>
+                    </div>
+
+                    <div class="tool-item" draggable="true" data-type="column" data-size="40x40">
+                        <div class="tool-icon" style="color: #64748B;">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">Column</div>
+                            <div class="tool-desc">Support column</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="canvas-container">
+                <div class="restaurant-canvas" id="canvas">
+                    <!-- Toolbar -->
+                    <div class="toolbar">
+                        <button class="toolbar-btn" onclick="layoutEditor.toggleGrid()" title="Toggle Grid">
+                            <i class="fas fa-grip-horizontal"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="layoutEditor.undo()" title="Undo">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="toolbar-btn" onclick="layoutEditor.redo()" title="Redo">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-hand-pointer"></i>
+                        <p>Drag elements from the left panel to start designing</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="properties-panel" id="propertiesPanel">
+                <div class="properties-header">Properties</div>
+                <p class="text-muted small">Select an element to edit properties</p>
+
+                <div id="propertiesContent">
+                    <!-- Properties will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Confirmation Modal -->
+    <div class="modal fade" id="saveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Save Layout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Layout Name</label>
+                        <input type="text" class="form-control" id="layoutName" placeholder="e.g., Main Dining Area">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This layout will be saved and can be loaded in the viewer.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary-custom" onclick="layoutEditor.confirmSave()">
+                        <i class="fas fa-save me-2"></i>Save Layout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * Canvas Element Class
+         * Represents an element placed on the canvas with drag/resize capabilities
+         */
+        class CanvasElement {
+            constructor(id, type, x, y, width, height, data = {}) {
+                this.id = id;
+                this.type = type;           // table, bar, wall, column
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.data = data;           // Additional properties (shape, capacity, label, etc)
+            }
+
+            /**
+             * Convert to JSON for storage
+             * @returns {Object} JSON representation
+             */
+            toJSON() {
+                return {
+                    id: this.id,
+                    type: this.type,
+                    x: this.x,
+                    y: this.y,
+                    width: this.width,
+                    height: this.height,
+                    data: this.data
+                };
+            }
+        }
+
+        /**
+         * Layout Editor Class
+         * Main controller for the drag-and-drop editor
+         * Implements the Command Pattern for undo/redo functionality
+         */
+        class LayoutEditor {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.elements = [];
+                this.selectedElement = null;
+                this.nextId = 1;
+                this.draggedTool = null;
+                this.isDragging = false;
+                this.isResizing = false;
+                this.dragOffset = { x: 0, y: 0 };
+                this.showGrid = false;
+                this.history = [];
+                this.historyIndex = -1;
+                this.saveModal = new bootstrap.Modal(document.getElementById('saveModal'));
+
+                this.init();
+            }
+
+            /**
+             * Initialize event listeners
+             */
+            init() {
+                this.attachToolListeners();
+                this.attachCanvasListeners();
+                this.attachKeyboardListeners();
+            }
+
+            /**
+             * Attach drag listeners to tool items
+             */
+            attachToolListeners() {
+                document.querySelectorAll('.tool-item').forEach(tool => {
+                    tool.addEventListener('dragstart', (e) => this.handleToolDragStart(e));
+                    tool.addEventListener('dragend', (e) => this.handleToolDragEnd(e));
+                });
+            }
+
+            /**
+             * Attach drop listeners to canvas
+             */
+            attachCanvasListeners() {
+                this.canvas.addEventListener('dragover', (e) => this.handleCanvasDragOver(e));
+                this.canvas.addEventListener('drop', (e) => this.handleCanvasDrop(e));
+                this.canvas.addEventListener('dragleave', (e) => this.handleCanvasDragLeave(e));
+                this.canvas.addEventListener('click', (e) => {
+                    if (e.target === this.canvas) {
+                        this.deselectAll();
+                    }
+                });
+            }
+
+            /**
+             * Attach keyboard shortcuts
+             */
+            attachKeyboardListeners() {
+                document.addEventListener('keydown', (e) => {
+                    // Delete key
+                    if (e.key === 'Delete' && this.selectedElement) {
+                        this.deleteElement(this.selectedElement);
+                    }
+                    // Ctrl/Cmd + Z (Undo)
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.undo();
+                    }
+                    // Ctrl/Cmd + Shift + Z (Redo)
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+                        e.preventDefault();
+                        this.redo();
+                    }
+                });
+            }
+
+            /**
+             * Handle tool drag start
+             * @param {DragEvent} e - Drag event
+             */
+            handleToolDragStart(e) {
+                this.draggedTool = e.target;
+                this.draggedTool.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'copy';
+            }
+
+            /**
+             * Handle tool drag end
+             * @param {DragEvent} e - Drag event
+             */
+            handleToolDragEnd(e) {
+                if (this.draggedTool) {
+                    this.draggedTool.classList.remove('dragging');
+                    this.draggedTool = null;
+                }
+            }
+
+            /**
+             * Handle canvas drag over
+             * @param {DragEvent} e - Drag event
+             */
+            handleCanvasDragOver(e) {
+                e.preventDefault();
+                this.canvas.classList.add('drag-over');
+            }
+
+            /**
+             * Handle canvas drag leave
+             * @param {DragEvent} e - Drag event
+             */
+            handleCanvasDragLeave(e) {
+                if (e.target === this.canvas) {
+                    this.canvas.classList.remove('drag-over');
+                }
+            }
+
+            /**
+             * Handle canvas drop - Creates new element
+             * @param {DragEvent} e - Drop event
+             */
+            handleCanvasDrop(e) {
+                e.preventDefault();
+                this.canvas.classList.remove('drag-over');
+
+                if (!this.draggedTool) return;
+
+                // Get drop position relative to canvas
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Get tool data
+                const type = this.draggedTool.dataset.type;
+                const size = this.draggedTool.dataset.size.split('x');
+                const width = parseInt(size[0]);
+                const height = parseInt(size[1]);
+
+                // Create element data
+                const data = {};
+                if (type === 'table') {
+                    data.shape = this.draggedTool.dataset.shape;
+                    data.capacity = parseInt(this.draggedTool.dataset.capacity);
+                    data.number = `T${String(this.nextId).padStart(2, '0')}`;
+                }
+
+                // Create and add element
+                const element = new CanvasElement(
+                    this.nextId++,
+                    type,
+                    Math.max(0, Math.min(x - width / 2, this.canvas.offsetWidth - width)),
+                    Math.max(0, Math.min(y - height / 2, this.canvas.offsetHeight - height)),
+                    width,
+                    height,
+                    data
+                );
+
+                this.addElement(element);
+                this.saveHistory();
+                this.hideEmptyState();
+            }
+
+            /**
+             * Add element to canvas
+             * @param {CanvasElement} element - Element to add
+             */
+            addElement(element) {
+                this.elements.push(element);
+                this.renderElement(element);
+            }
+
+            /**
+             * Render element on canvas
+             * @param {CanvasElement} element - Element to render
+             */
+            renderElement(element) {
+                const el = document.createElement('div');
+                el.className = `canvas-element ${element.type}`;
+                el.dataset.elementId = element.id;
+                el.style.left = `${element.x}px`;
+                el.style.top = `${element.y}px`;
+                el.style.width = `${element.width}px`;
+                el.style.height = `${element.height}px`;
+
+                // Add shape class for tables
+                if (element.type === 'table' && element.data.shape) {
+                    el.classList.add(element.data.shape);
+                }
+
+                // Add content
+                if (element.type === 'table') {
+                    el.innerHTML = `
+                        <div class="element-label">${element.data.number}</div>
+                        <div class="element-capacity">${element.data.capacity} guests</div>
+                    `;
+                } else if (element.type === 'bar') {
+                    el.textContent = 'Bar';
+                }
+
+                // Add delete button
+                const deleteBtn = document.createElement('div');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.deleteElement(element.id);
+                };
+                el.appendChild(deleteBtn);
+
+                // Add resize handles
+                ['nw', 'ne', 'sw', 'se'].forEach(position => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle ${position}`;
+                    handle.dataset.position = position;
+                    el.appendChild(handle);
+                });
+
+                // Attach element event listeners
+                el.addEventListener('mousedown', (e) => this.handleElementMouseDown(e, element));
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.selectElement(element.id);
+                });
+
+                this.canvas.appendChild(el);
+            }
+
+            /**
+             * Handle element mouse down for dragging
+             * @param {MouseEvent} e - Mouse event
+             * @param {CanvasElement} element - Element being dragged
+             */
+            handleElementMouseDown(e, element) {
+                // Check if resize handle was clicked
+                if (e.target.classList.contains('resize-handle')) {
+                    this.startResize(e, element);
+                    return;
+                }
+
+                // Ignore if clicking delete button
+                if (e.target.closest('.delete-btn')) return;
+
+                this.isDragging = true;
+                this.selectedElement = element;
+
+                const el = e.currentTarget;
+                const rect = el.getBoundingClientRect();
+                this.dragOffset = {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+
+                el.classList.add('dragging');
+
+                const handleMouseMove = (e) => {
+                    if (!this.isDragging) return;
+
+                    const canvasRect = this.canvas.getBoundingClientRect();
+                    let x = e.clientX - canvasRect.left - this.dragOffset.x;
+                    let y = e.clientY - canvasRect.top - this.dragOffset.y;
+
+                    // Constrain to canvas bounds
+                    x = Math.max(0, Math.min(x, this.canvas.offsetWidth - element.width));
+                    y = Math.max(0, Math.min(y, this.canvas.offsetHeight - element.height));
+
+                    element.x = x;
+                    element.y = y;
+
+                    el.style.left = `${x}px`;
+                    el.style.top = `${y}px`;
+
+                    this.updateProperties(element);
+                };
+
+                const handleMouseUp = () => {
+                    this.isDragging = false;
+                    el.classList.remove('dragging');
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    this.saveHistory();
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            }
+
+            /**
+             * Start resizing element
+             * @param {MouseEvent} e - Mouse event
+             * @param {CanvasElement} element - Element to resize
+             */
+            startResize(e, element) {
+                e.stopPropagation();
+                this.isResizing = true;
+                const handle = e.target;
+                const position = handle.dataset.position;
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = element.width;
+                const startHeight = element.height;
+                const startPosX = element.x;
+                const startPosY = element.y;
+
+                const handleMouseMove = (e) => {
+                    if (!this.isResizing) return;
+
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+
+                    // Calculate new dimensions based on handle position
+                    if (position.includes('e')) {
+                        element.width = Math.max(50, startWidth + dx);
+                    }
+                    if (position.includes('w')) {
+                        const newWidth = Math.max(50, startWidth - dx);
+                        element.x = startPosX + (startWidth - newWidth);
+                        element.width = newWidth;
+                    }
+                    if (position.includes('s')) {
+                        element.height = Math.max(50, startHeight + dy);
+                    }
+                    if (position.includes('n')) {
+                        const newHeight = Math.max(50, startHeight - dy);
+                        element.y = startPosY + (startHeight - newHeight);
+                        element.height = newHeight;
+                    }
+
+                    this.updateElementDOM(element);
+                    this.updateProperties(element);
+                };
+
+                const handleMouseUp = () => {
+                    this.isResizing = false;
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    this.saveHistory();
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            }
+
+            /**
+             * Update element DOM after resize/move
+             * @param {CanvasElement} element - Element to update
+             */
+            updateElementDOM(element) {
+                const el = this.canvas.querySelector(`[data-element-id="${element.id}"]`);
+                if (el) {
+                    el.style.left = `${element.x}px`;
+                    el.style.top = `${element.y}px`;
+                    el.style.width = `${element.width}px`;
+                    el.style.height = `${element.height}px`;
+                }
+            }
+
+            /**
+             * Select element and show properties
+             * @param {number} elementId - Element ID
+             */
+            selectElement(elementId) {
+                this.deselectAll();
+
+                const element = this.elements.find(e => e.id === elementId);
+                if (!element) return;
+
+                this.selectedElement = element;
+
+                const el = this.canvas.querySelector(`[data-element-id="${elementId}"]`);
+                if (el) {
+                    el.classList.add('selected');
+                }
+
+                this.showProperties(element);
+            }
+
+            /**
+             * Deselect all elements
+             */
+            deselectAll() {
+                this.canvas.querySelectorAll('.canvas-element').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                this.selectedElement = null;
+                this.hideProperties();
+            }
+
+            /**
+             * Show properties panel for element
+             * @param {CanvasElement} element - Element to show properties for
+             */
+            showProperties(element) {
+                const content = document.getElementById('propertiesContent');
+
+                let html = `
+                    <div class="property-group">
+                        <label class="property-label">Position</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" class="property-input" value="${Math.round(element.x)}"
+                                       onchange="layoutEditor.updateElementProperty(${element.id}, 'x', parseInt(this.value))" placeholder="X">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="property-input" value="${Math.round(element.y)}"
+                                       onchange="layoutEditor.updateElementProperty(${element.id}, 'y', parseInt(this.value))" placeholder="Y">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="property-group">
+                        <label class="property-label">Size</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" class="property-input" value="${Math.round(element.width)}"
+                                       onchange="layoutEditor.updateElementProperty(${element.id}, 'width', parseInt(this.value))" placeholder="Width">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="property-input" value="${Math.round(element.height)}"
+                                       onchange="layoutEditor.updateElementProperty(${element.id}, 'height', parseInt(this.value))" placeholder="Height">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (element.type === 'table') {
+                    html += `
+                        <div class="property-group">
+                            <label class="property-label">Table Number</label>
+                            <input type="text" class="property-input" value="${element.data.number}"
+                                   onchange="layoutEditor.updateElementData(${element.id}, 'number', this.value)">
+                        </div>
+
+                        <div class="property-group">
+                            <label class="property-label">Capacity</label>
+                            <input type="number" class="property-input" value="${element.data.capacity}"
+                                   onchange="layoutEditor.updateElementData(${element.id}, 'capacity', parseInt(this.value))">
+                        </div>
+
+                        <div class="property-group">
+                            <label class="property-label">Shape</label>
+                            <select class="property-input" onchange="layoutEditor.updateElementData(${element.id}, 'shape', this.value)">
+                                <option value="square" ${element.data.shape === 'square' ? 'selected' : ''}>Square</option>
+                                <option value="round" ${element.data.shape === 'round' ? 'selected' : ''}>Round</option>
+                                <option value="rectangular" ${element.data.shape === 'rectangular' ? 'selected' : ''}>Rectangular</option>
+                            </select>
+                        </div>
+                    `;
+                }
+
+                content.innerHTML = html;
+            }
+
+            /**
+             * Hide properties panel
+             */
+            hideProperties() {
+                document.getElementById('propertiesContent').innerHTML = '';
+            }
+
+            /**
+             * Update element property
+             * @param {number} elementId - Element ID
+             * @param {string} property - Property name
+             * @param {any} value - New value
+             */
+            updateElementProperty(elementId, property, value) {
+                const element = this.elements.find(e => e.id === elementId);
+                if (element) {
+                    element[property] = value;
+                    this.updateElementDOM(element);
+                    this.saveHistory();
+                }
+            }
+
+            /**
+             * Update element data property
+             * @param {number} elementId - Element ID
+             * @param {string} key - Data key
+             * @param {any} value - New value
+             */
+            updateElementData(elementId, key, value) {
+                const element = this.elements.find(e => e.id === elementId);
+                if (element) {
+                    element.data[key] = value;
+
+                    // Re-render element to show changes
+                    const el = this.canvas.querySelector(`[data-element-id="${elementId}"]`);
+                    if (el) {
+                        el.remove();
+                        this.renderElement(element);
+                    }
+
+                    this.saveHistory();
+                }
+            }
+
+            /**
+             * Update properties display
+             * @param {CanvasElement} element - Element to update
+             */
+            updateProperties(element) {
+                if (this.selectedElement && this.selectedElement.id === element.id) {
+                    this.showProperties(element);
+                }
+            }
+
+            /**
+             * Delete element from canvas
+             * @param {number} elementId - Element ID to delete
+             */
+            deleteElement(elementId) {
+                this.elements = this.elements.filter(e => e.id !== elementId);
+
+                const el = this.canvas.querySelector(`[data-element-id="${elementId}"]`);
+                if (el) {
+                    el.remove();
+                }
+
+                if (this.selectedElement && this.selectedElement.id === elementId) {
+                    this.deselectAll();
+                }
+
+                if (this.elements.length === 0) {
+                    this.showEmptyState();
+                }
+
+                this.saveHistory();
+            }
+
+            /**
+             * Toggle grid display
+             */
+            toggleGrid() {
+                this.showGrid = !this.showGrid;
+                if (this.showGrid) {
+                    this.canvas.classList.add('show-grid');
+                } else {
+                    this.canvas.classList.remove('show-grid');
+                }
+            }
+
+            /**
+             * Clear all elements from canvas
+             */
+            clearCanvas() {
+                if (this.elements.length === 0) return;
+
+                if (confirm('Are you sure you want to clear all elements? This action cannot be undone.')) {
+                    this.elements = [];
+                    this.canvas.querySelectorAll('.canvas-element').forEach(el => el.remove());
+                    this.deselectAll();
+                    this.showEmptyState();
+                    this.saveHistory();
+                }
+            }
+
+            /**
+             * Save current state to history (for undo/redo)
+             */
+            saveHistory() {
+                // Remove any states after current index
+                this.history = this.history.slice(0, this.historyIndex + 1);
+
+                // Save current state
+                this.history.push(JSON.stringify(this.elements.map(e => e.toJSON())));
+                this.historyIndex++;
+
+                // Limit history to 50 states
+                if (this.history.length > 50) {
+                    this.history.shift();
+                    this.historyIndex--;
+                }
+            }
+
+            /**
+             * Undo last action
+             */
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.loadState(this.history[this.historyIndex]);
+                }
+            }
+
+            /**
+             * Redo last undone action
+             */
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.loadState(this.history[this.historyIndex]);
+                }
+            }
+
+            /**
+             * Load state from history
+             * @param {string} stateJson - JSON state string
+             */
+            loadState(stateJson) {
+                const state = JSON.parse(stateJson);
+
+                // Clear current elements
+                this.canvas.querySelectorAll('.canvas-element').forEach(el => el.remove());
+                this.elements = [];
+
+                // Load elements from state
+                state.forEach(elementData => {
+                    const element = new CanvasElement(
+                        elementData.id,
+                        elementData.type,
+                        elementData.x,
+                        elementData.y,
+                        elementData.width,
+                        elementData.height,
+                        elementData.data
+                    );
+                    this.addElement(element);
+                });
+
+                this.deselectAll();
+
+                if (this.elements.length === 0) {
+                    this.showEmptyState();
+                } else {
+                    this.hideEmptyState();
+                }
+            }
+
+            /**
+             * Show empty state message
+             */
+            showEmptyState() {
+                document.getElementById('emptyState').style.display = 'block';
+            }
+
+            /**
+             * Hide empty state message
+             */
+            hideEmptyState() {
+                document.getElementById('emptyState').style.display = 'none';
+            }
+
+            /**
+             * Load a predefined template
+             */
+            loadTemplate() {
+                // Sample template data
+                const template = [
+                    { id: 1, type: 'table', x: 50, y: 60, width: 120, height: 100, data: { shape: 'square', capacity: 4, number: 'T01' } },
+                    { id: 2, type: 'table', x: 220, y: 60, width: 110, height: 110, data: { shape: 'round', capacity: 6, number: 'T02' } },
+                    { id: 3, type: 'table', x: 390, y: 60, width: 120, height: 100, data: { shape: 'square', capacity: 4, number: 'T03' } },
+                    { id: 4, type: 'bar', x: 700, y: 100, width: 60, height: 400, data: { label: 'Bar' } },
+                    { id: 5, type: 'wall', x: 10, y: 10, width: 10, height: 580, data: {} }
+                ];
+
+                if (this.elements.length > 0) {
+                    if (!confirm('This will replace your current layout. Continue?')) return;
+                }
+
+                this.loadState(JSON.stringify(template));
+                this.nextId = Math.max(...template.map(e => e.id)) + 1;
+            }
+
+            /**
+             * Open save modal
+             */
+            saveLayout() {
+                if (this.elements.length === 0) {
+                    alert('Cannot save an empty layout. Please add some elements first.');
+                    return;
+                }
+
+                this.saveModal.show();
+            }
+
+            /**
+             * Confirm and save layout
+             */
+            confirmSave() {
+                const layoutName = document.getElementById('layoutName').value.trim();
+
+                if (!layoutName) {
+                    alert('Please enter a layout name.');
+                    return;
+                }
+
+                const layoutData = {
+                    name: layoutName,
+                    width: 900,
+                    height: 600,
+                    tables: this.elements.filter(e => e.type === 'table').map(e => e.toJSON()),
+                    decorations: this.elements.filter(e => e.type !== 'table').map(e => e.toJSON()),
+                    created_at: new Date().toISOString()
+                };
+
+                // In production, send to backend via AJAX
+                console.log('Saving layout:', layoutData);
+
+                // Simulate save to localStorage
+                localStorage.setItem('restaurantLayout', JSON.stringify(layoutData));
+
+                this.saveModal.hide();
+
+                // Show success message
+                alert(`Layout "${layoutName}" saved successfully!\n\nYou can now load it in the Layout Viewer.`);
+
+                // Clear form
+                document.getElementById('layoutName').value = '';
+            }
+        }
+
+        // Initialize the layout editor
+        const layoutEditor = new LayoutEditor();
+
+        console.log('Layout Editor initialized');
+    </script>
+</body>
+</html>

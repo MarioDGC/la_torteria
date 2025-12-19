@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restro POS - Dashboard</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary-orange: #FF8C42;
+            --success-green: #10B981;
+            --danger-red: #EF4444;
+            --info-blue: #3B82F6;
+            --warning-yellow: #F59E0B;
+            --sidebar-bg: #F9FAFB;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F3F4F6;
+            color: #1F2937;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            min-height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #E5E7EB;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-item {
+            padding: 1.25rem 0;
+            text-align: center;
+            color: #6B7280;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: #FEF3E2;
+            color: var(--primary-orange);
+            border-left-color: var(--primary-orange);
+        }
+
+        .sidebar-item i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item span {
+            font-size: 0.75rem;
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 80px;
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .top-header {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-orange);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #E67E3C;
+            transform: translateY(-1px);
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid;
+            height: 100%;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card.sales { border-left-color: var(--success-green); }
+        .kpi-card.orders { border-left-color: var(--info-blue); }
+        .kpi-card.average { border-left-color: var(--primary-orange); }
+        .kpi-card.customers { border-left-color: #8B5CF6; }
+
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .kpi-icon.sales { background-color: #D1FAE5; color: var(--success-green); }
+        .kpi-icon.orders { background-color: #DBEAFE; color: var(--info-blue); }
+        .kpi-icon.average { background-color: #FEF3E2; color: var(--primary-orange); }
+        .kpi-icon.customers { background-color: #EDE9FE; color: #8B5CF6; }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0.25rem 0;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            color: #6B7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-trend {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: var(--success-green);
+        }
+
+        .trend-down {
+            color: var(--danger-red);
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            height: 100%;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1F2937;
+        }
+
+        /* Tables Status */
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .status-item {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+
+        .status-item:hover {
+            background-color: #F9FAFB;
+        }
+
+        .status-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-badge.occupied { background-color: var(--danger-red); }
+        .status-badge.vacant { background-color: var(--success-green); }
+        .status-badge.reserved { background-color: var(--warning-yellow); }
+
+        /* Recent Orders */
+        .order-item {
+            padding: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background-color 0.2s;
+        }
+
+        .order-item:hover {
+            background-color: #F9FAFB;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .order-time {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+
+        .order-amount {
+            font-weight: 600;
+            color: var(--success-green);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-item span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                padding: 1rem;
+            }
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-item active">
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-table"></i>
+            <span>Tables</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Cashier</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-receipt"></i>
+            <span>Orders</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>Reports</span>
+        </div>
+        <div class="sidebar-item">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="top-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 mb-1 fw-bold">Restro POS</h1>
+                <p class="text-muted mb-0 small">Dashboard Overview</p>
+            </div>
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                <div class="search-box flex-grow-1">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Search products, orders...">
+                </div>
+                <button class="btn btn-primary-custom">
+                    <i class="fas fa-table me-2"></i>Select Table
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="kpi-card sales">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <div class="kpi-label">Total Sales</div>
+                            <div class="kpi-value">$12,426</div>
+                            <div class="kpi-trend trend-up">
+                                <i class="fas fa-arrow-up me-1"></i>18.2% vs yesterday
+                            </div>
+                        </div>
+                        <div class="kpi-icon sales">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="kpi-card orders">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <div class="kpi-label">Total Orders</div>
+                            <div class="kpi-value">156</div>
+                            <div class="kpi-trend trend-up">
+                                <i class="fas fa-arrow-up me-1"></i>12.5% vs yesterday
+                            </div>
+                        </div>
+                        <div class="kpi-icon orders">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="kpi-card average">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <div class="kpi-label">Average Ticket</div>
+                            <div class="kpi-value">$79.65</div>
+                            <div class="kpi-trend trend-down">
+                                <i class="fas fa-arrow-down me-1"></i>3.1% vs yesterday
+                            </div>
+                        </div>
+                        <div class="kpi-icon average">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="kpi-card customers">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div>
+                            <div class="kpi-label">Total Customers</div>
+                            <div class="kpi-value">89</div>
+                            <div class="kpi-trend trend-up">
+                                <i class="fas fa-arrow-up me-1"></i>8.7% vs yesterday
+                            </div>
+                        </div>
+                        <div class="kpi-icon customers">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-4">
+            <!-- Sales Trend Chart -->
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="chart-title mb-0">Sales Overview</h2>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary">Day</button>
+                            <button type="button" class="btn btn-outline-secondary active">Week</button>
+                            <button type="button" class="btn btn-outline-secondary">Month</button>
+                        </div>
+                    </div>
+                    <canvas id="salesChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Products Chart -->
+            <div class="col-12 col-lg-4">
+                <div class="chart-card">
+                    <h2 class="chart-title">Top Products</h2>
+                    <canvas id="productsChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="row g-3">
+            <!-- Table Status -->
+            <div class="col-12 col-lg-4">
+                <div class="status-card">
+                    <h2 class="chart-title">Table Status</h2>
+                    <div class="status-item">
+                        <div>
+                            <span class="status-badge occupied"></span>
+                            <span class="fw-semibold">Occupied</span>
+                        </div>
+                        <span class="badge bg-danger">8 Tables</span>
+                    </div>
+                    <div class="status-item">
+                        <div>
+                            <span class="status-badge vacant"></span>
+                            <span class="fw-semibold">Vacant</span>
+                        </div>
+                        <span class="badge bg-success">12 Tables</span>
+                    </div>
+                    <div class="status-item">
+                        <div>
+                            <span class="status-badge reserved"></span>
+                            <span class="fw-semibold">Reserved</span>
+                        </div>
+                        <span class="badge bg-warning">3 Tables</span>
+                    </div>
+
+                    <div class="mt-4">
+                        <h3 class="h6 mb-3 fw-semibold">Order Distribution</h3>
+                        <canvas id="orderTypeChart" style="max-height: 180px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="col-12 col-lg-8">
+                <div class="chart-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="chart-title mb-0">Recent Orders</h2>
+                        <a href="#" class="text-decoration-none" style="color: var(--primary-orange);">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Table</th>
+                                    <th>Time</th>
+                                    <th>Items</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="order-id">#4587198751</td>
+                                    <td>Vincent Lobo</td>
+                                    <td>T42</td>
+                                    <td class="order-time">12:34 PM</td>
+                                    <td>4 items</td>
+                                    <td class="order-amount text-end">$195.00</td>
+                                    <td class="text-center"><span class="badge bg-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="order-id">#4587198752</td>
+                                    <td>Sarah Johnson</td>
+                                    <td>T45</td>
+                                    <td class="order-time">12:28 PM</td>
+                                    <td>3 items</td>
+                                    <td class="order-amount text-end">$124.00</td>
+                                    <td class="text-center"><span class="badge bg-warning text-dark">Preparing</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="order-id">#4587198753</td>
+                                    <td>Mike Chen</td>
+                                    <td>T47</td>
+                                    <td class="order-time">12:15 PM</td>
+                                    <td>5 items</td>
+                                    <td class="order-amount text-end">$245.50</td>
+                                    <td class="text-center"><span class="badge bg-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="order-id">#4587198754</td>
+                                    <td>Emily Davis</td>
+                                    <td>T43</td>
+                                    <td class="order-time">11:58 AM</td>
+                                    <td>2 items</td>
+                                    <td class="order-amount text-end">$89.00</td>
+                                    <td class="text-center"><span class="badge bg-info">Served</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="order-id">#4587198755</td>
+                                    <td>James Wilson</td>
+                                    <td>T51</td>
+                                    <td class="order-time">11:45 AM</td>
+                                    <td>6 items</td>
+                                    <td class="order-amount text-end">$312.75</td>
+                                    <td class="text-center"><span class="badge bg-success">Completed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Configuration for Chart.js defaults
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+        Chart.defaults.color = '#6B7280';
+
+        /**
+         * Initialize Sales Overview Chart
+         * Shows weekly sales trend with gradient fill
+         */
+        const initSalesChart = () => {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+
+            // Create gradient for area fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Sales',
+                        data: [1850, 2100, 1920, 2350, 2180, 2890, 2650],
+                        borderColor: '#10B981',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        /**
+         * Initialize Top Products Doughnut Chart
+         * Displays top 5 products by sales volume
+         */
+        const initProductsChart = () => {
+            const ctx = document.getElementById('productsChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Thai Noodles', 'Schezwan Egg', 'Spicy Shrimp', 'Fried Basil', 'Others'],
+                    datasets: [{
+                        data: [28, 22, 18, 15, 17],
+                        backgroundColor: [
+                            '#FF8C42',
+                            '#10B981',
+                            '#3B82F6',
+                            '#F59E0B',
+                            '#E5E7EB'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        /**
+         * Initialize Order Type Distribution Chart
+         * Shows breakdown of dine-in, takeout, and delivery orders
+         */
+        const initOrderTypeChart = () => {
+            const ctx = document.getElementById('orderTypeChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Dine-in', 'Takeout', 'Delivery'],
+                    datasets: [{
+                        label: 'Orders',
+                        data: [68, 45, 43],
+                        backgroundColor: [
+                            '#10B981',
+                            '#FF8C42',
+                            '#3B82F6'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#F3F4F6'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Initialize all charts when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                initSalesChart();
+                initProductsChart();
+                initOrderTypeChart();
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        });
+
+        /**
+         * Handle sidebar navigation active state
+         */
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
