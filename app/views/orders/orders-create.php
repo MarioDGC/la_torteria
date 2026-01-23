@@ -79,7 +79,7 @@ if (!$account) {
                             <?php foreach ($categories as $index => $category): ?>
                                 <li class="nav-item" role="presentation">
                                     <button 
-                                        class="nav-link <?php echo $index === 0 ? 'active' : ''; ?>" 
+                                        class="nav-link category-tab <?php echo $index === 0 ? 'active' : ''; ?>" 
                                         id="cat-<?php echo $category['id']; ?>-tab"
                                         data-bs-toggle="tab" 
                                         data-bs-target="#cat-<?php echo $category['id']; ?>"
