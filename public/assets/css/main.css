@@ -1,0 +1,13 @@
+/* /public/assets/css/main.css */
+
+/* Base */
+@import url('base/variables.css');
+
+/* Components */
+@import url('components/cards.css');
+
+/* Layouts */
+@import url('layouts/dashboard.css');
+
+/* Pages */
+@import url('pages/tables.css');
